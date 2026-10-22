@@ -6,10 +6,10 @@
 
 | Nombre | Usuario GitHub | Rol |
 |---|---|---|
-| | | Líder técnico / Data Engineer |
-| | | Data Quality Analyst |
-| | | Analytics Engineer |
-| | | BI Analyst / Storyteller |
+| Aleicer Vesga | aleicer | Líder técnico / Data Engineer |
+| Jaider Morales | JaiderMoraless | Data Quality Analyst |
+| Aleicer Vesga | aleicer | Analytics Engineer |
+| Guillermo Leon | memo-iud | BI Analyst / Storyteller |
 
 ## 🎯 Objetivo
 
