@@ -3,6 +3,9 @@ Fuente 1 - API REST de XM (operador del mercado electrico colombiano).
   - Metodo POST con un cuerpo JSON
   - Maximo 30 dias por consulta  ->  pedimos por VENTANAS
   - No requiere usuario ni clave
+  - Tres endpoints: hourly (por hora), daily (por dia) y lists (catalogos)
+  - ListadoRecursos (catalogo de plantas) va por "lists": NO recibe fechas
+    y responde con otra estructura (ListEntities). Por eso tiene su propia funcion.
 Documentacion: https://github.com/EquipoAnaliticaXM/API_XM
 """
 # ---------------------------------------------------------------------------
@@ -20,6 +23,14 @@ from src.utils import guardar_bronce, http_json, log, ventanas, ya_existe
 #   ventanas:       parte un rango de fechas en bloques de 30 dias
 #   ya_existe:      dice si el archivo ya esta en bronce (para no descargarlo otra vez)
 
+# Para cada periodo, la llave donde XM pone las entidades dentro de cada item.
+# Asi aplanar() no necesita un if distinto por cada tipo de respuesta.
+LLAVE_ENTIDADES = {
+    "hourly": "HourlyEntities",     # datos por hora: Values trae Hour01 ... Hour24
+    "daily": "DailyEntities",       # datos por dia: un solo Value por entidad
+    "lists": "ListEntities",        # catalogos: Values trae los atributos (codigo, nombre, tipo...)
+}
+
 
 # ---------------------------------------------------------------------------
 # NOTA sobre "respuesta: dict" o "-> list" en las funciones:
@@ -30,20 +41,38 @@ from src.utils import guardar_bronce, http_json, log, ventanas, ya_existe
 
 
 def aplanar(respuesta: dict, periodo: str) -> list:
-    """Convierte el JSON anidado de XM en filas planas, SIN cambiar los valores."""
+    """Convierte el JSON anidado de XM en filas planas, SIN cambiar los valores.
+
+    periodo = "hourly" | "daily" | "lists"
+    """
+    llave = LLAVE_ENTIDADES[periodo]               # HourlyEntities, DailyEntities o ListEntities
     filas = []                                     # lista vacia donde se van guardando las filas
     # .get("Items", []) toma la lista "Items" de la respuesta;
     # si XM no la mando, devuelve una lista vacia [] en vez de fallar.
-    for item in respuesta.get("Items", []):        # cada item es un dia
-        if periodo == "hourly":                    # datos por hora (precio, demanda)
-            for entidad in item["HourlyEntities"]:
-                # Cada fila es un diccionario {columna: valor}.
-                # ** desempaca el diccionario Values: agrega Hour01 ... Hour24 a la fila.
-                filas.append({"Date": item["Date"], "Id": entidad["Id"], **entidad["Values"]})
-        else:                                      # datos diarios (embalses)
-            for entidad in item["DailyEntities"]:
-                filas.append({"Date": item["Date"], "Id": entidad["Id"], "Value": entidad["Value"]})
+    for item in respuesta.get("Items", []):        # en hourly/daily cada item es un dia
+        for entidad in item.get(llave, []):
+            fila = {"Date": item.get("Date"), "Id": entidad.get("Id")}
+            if periodo == "daily":
+                fila["Value"] = entidad.get("Value")           # un solo valor por dia
+            else:
+                # ** desempaca el diccionario Values dentro de la fila:
+                #   hourly -> agrega Hour01 ... Hour24 (y el codigo de la planta en Recurso)
+                #   lists  -> agrega los atributos del catalogo (nombre, tipo, fuente, agente...)
+                fila.update(entidad.get("Values", {}))
+            filas.append(fila)
     return filas                                   # entrega la lista de filas
+
+
+def extraer_lista(metrica: str, entidad: str, nombre: str, forzar: bool) -> None:
+    """Descarga un catalogo de XM (endpoint lists). Una sola peticion, sin fechas."""
+    if ya_existe(nombre, forzar):
+        return
+    url = config.XM_URL.format(periodo="lists")    # https://servapibi.xm.com.co/lists
+    cuerpo = {"MetricId": metrica, "Entity": entidad}   # sin StartDate, EndDate ni Filter
+    respuesta = http_json("POST", url, json=cuerpo)
+    filas = aplanar(respuesta, "lists")
+    log(f"   {metrica}: {len(filas)} filas")
+    guardar_bronce(pd.DataFrame(filas), nombre, fuente="XM", origen=f"{url} MetricId={metrica}")
 
 
 def extraer_metrica(metrica: str, entidad: str, periodo: str, nombre: str, forzar: bool) -> None:
@@ -53,27 +82,27 @@ def extraer_metrica(metrica: str, entidad: str, periodo: str, nombre: str, forza
     url = config.XM_URL.format(periodo=periodo)    # reemplaza {periodo} por hourly o daily
     filas = []                                     # aqui se juntan las filas de todas las ventanas
     for inicio, fin in ventanas(config.FECHA_INICIO, config.FECHA_FIN, config.XM_MAX_DIAS):
-        # El pedido, con los mismos 5 campos del comando de prueba de la Parte 3.1.
         # str(inicio) convierte la fecha en texto "2026-01-01", como la pide XM.
         cuerpo = {"MetricId": metrica, "Entity": entidad,
                   "StartDate": str(inicio), "EndDate": str(fin), "Filter": []}
         respuesta = http_json("POST", url, json=cuerpo)          # envia el pedido con POST
         nuevas = aplanar(respuesta, periodo)                     # JSON anidado -> filas
         filas.extend(nuevas)                                     # agrega las filas de esta ventana
-        log(f"   {metrica} {inicio} a {fin}: {len(nuevas)} filas")   # len() = cuantas filas
-    # pd.DataFrame(filas) convierte la lista de filas en una tabla de pandas,
-    # y guardar_bronce() la guarda en data/bronze/<nombre>.parquet
-    guardar_bronce(pd.DataFrame(filas), nombre, fuente="XM", origen=f"{url} MetricId={metrica}")
+        log(f"   {metrica}/{entidad} {inicio} a {fin}: {len(nuevas)} filas")
+    guardar_bronce(pd.DataFrame(filas), nombre, fuente="XM",
+                   origen=f"{url} MetricId={metrica} Entity={entidad}")
 
 
 def extraer(forzar: bool = False) -> None:
-    """Descarga las 3 metricas de XM definidas en config.XM_METRICAS."""
-    # forzar: bool = False -> si no se indica nada, forzar vale False (no repetir descargas).
+    """Descarga todas las metricas de XM definidas en config.XM_METRICAS."""
     log("XM - API REST del mercado electrico")
     # Cada elemento de XM_METRICAS es una tupla de 4 valores;
     # el for la desempaca en 4 variables a la vez.
     for metrica, entidad, periodo, nombre in config.XM_METRICAS:
-        extraer_metrica(metrica, entidad, periodo, nombre, forzar)
+        if periodo == "lists":                     # catalogo: otra forma de pedir
+            extraer_lista(metrica, entidad, nombre, forzar)
+        else:                                      # serie de tiempo: por ventanas de 30 dias
+            extraer_metrica(metrica, entidad, periodo, nombre, forzar)
 
 
 # ---------------------------------------------------------------------------
