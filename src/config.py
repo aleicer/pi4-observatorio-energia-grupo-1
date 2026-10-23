@@ -52,3 +52,16 @@ ENERANDES_EXCEL = DIR_INSUMOS / "ventas_enerandes_2023_2026.xlsx"
 # --- Comportamiento HTTP ---------------------------------------------------
 HTTP_TIMEOUT = 120      # segundos que se espera una respuesta antes de rendirse
 HTTP_REINTENTOS = 4     # intentos ante fallas de red o del servidor
+
+# --- Fuente 5 (propia): NASA POWER, clima y radiacion solar por satelite --
+# API gratuita de la NASA, sin usuario ni clave. Datos diarios por punto (latitud, longitud).
+# Docs: https://power.larc.nasa.gov/docs/tutorials/service-data-request/api/
+NASA_POWER_URL = "https://power.larc.nasa.gov/api/temporal/daily/point"
+NASA_POWER_PARAMETROS = "ALLSKY_SFC_SW_DWN,T2M,PRECTOTCORR" # radiacion, temperatura, lluvia
+NASA_POWER_PUNTOS = [
+# (nombre del punto, latitud, longitud) -> coordenadas APROXIMADAS, verificar
+("Medellin", 6.2442, -75.5812), # mayor centro de consumo de EnerAndes
+("Embalse El Penol-Guatape", 6.2300, -75.1600), # embalse clave de Antioquia
+("Hidroituango", 7.1300, -75.6600), # la hidroelectrica mas grande del pais
+("La Guajira (zona solar y eolica)", 11.5400, -72.9100),
+]
