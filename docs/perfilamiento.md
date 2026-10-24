@@ -284,4 +284,44 @@
 
 ## Hallazgos de calidad
 
-_(Pendiente: mínimo 5 hallazgos con su evidencia numérica.)_
+### H1. Encontré filas repetidas en los archivos de EnerAndes
+
+- **Archivo:** `enerandes_ventas_2023`, `enerandes_ventas_2024`, `enerandes_ventas_2025` y `enerandes_ventas_2026`.
+- **Evidencia:** En los archivos de 2023, 2024 y 2025 aparecen 32 filas duplicadas por año. En el archivo de 2026 aparecen 24.
+- **Por qué importa:** Si usamos esos registros sin revisarlos, podríamos contar algunas ventas más de una vez y obtener resultados incorrectos.
+- **Qué haremos en plata:** Revisar cuáles registros están repetidos y eliminar los duplicados que no correspondan a información diferente.
+
+### H2. Algunas fechas de EnerAndes no se reconocen correctamente
+
+- **Archivo:** Los cuatro archivos de ventas de EnerAndes.
+- **Evidencia:** El perfilamiento muestra 2 valores que no se reconocen como fechas en 2023 y 2024, y 4 valores en 2025 y 2026.
+- **Por qué importa:** Esto puede generar problemas cuando queramos organizar las ventas por meses o comparar los resultados de diferentes años.
+- **Qué haremos en plata:** Revisar esos valores y corregir los formatos cuando sea posible, para que las fechas queden organizadas de la misma manera.
+
+### H3. Los datos del IDEAM no llegan hasta la fecha solicitada
+
+- **Archivo:** `ideam_precipitacion_diaria` e `ideam_temperatura_diaria`.
+- **Evidencia:** Los dos archivos tienen información solamente hasta el 24 de julio de 2026, aunque el periodo solicitado llega hasta el 30 de septiembre de 2026. Esto representa 68 días sin información al final del periodo.
+- **Por qué importa:** No podemos comparar completamente los datos del clima con los datos de XM durante esos últimos días.
+- **Qué haremos en plata:** Identificar el periodo que no tiene información y dejarlo señalado como faltante, sin inventar valores ni reemplazarlos por ceros.
+
+### H4. Hay diferente cantidad de estaciones en los datos del IDEAM
+
+- **Archivo:** `ideam_precipitacion_diaria` e `ideam_temperatura_diaria`.
+- **Evidencia:** El archivo de precipitación tiene 72 estaciones diferentes y el de temperatura solamente 44. También hay 50 municipios en precipitación y 37 en temperatura.
+- **Por qué importa:** Al relacionar los datos de lluvia y temperatura, algunas estaciones podrían no tener información de las dos variables.
+- **Qué haremos en plata:** Comparar los códigos de las estaciones e identificar cuáles tienen ambos tipos de datos antes de hacer los cruces.
+
+### H5. Encontré registros duplicados en el catálogo de XM
+
+- **Archivo:** `xm_listado_recursos`.
+- **Evidencia:** El archivo tiene 2.494 filas, pero aparecen 2 filas duplicadas. También se registran 2.492 códigos diferentes en la columna `Code`.
+- **Por qué importa:** Los registros repetidos pueden ocasionar problemas al relacionar las plantas del catálogo con los datos de generación de energía.
+- **Qué haremos en plata:** Revisar los registros duplicados y conservar una sola copia cuando se confirme que contienen la misma información.
+
+### H6. Hay muchos valores nulos en algunas horas de generación de XM
+
+- **Archivo:** `xm_generacion_recurso`.
+- **Evidencia:** El archivo contiene 350.345 filas. La columna `Hour03` tiene 52,69 % de valores nulos, mientras que `Hour14` tiene 6,77 %. Otras horas, como `Hour04`, también presentan porcentajes altos de valores nulos (52,75 %).
+- **Por qué importa:** Si no revisamos estos datos, podríamos interpretar los valores faltantes como si fueran generación igual a cero, aunque no necesariamente significan lo mismo.
+- **Qué haremos en plata:** Revisar por qué faltan estos valores y definir cómo tratarlos, sin reemplazarlos automáticamente por ceros.
