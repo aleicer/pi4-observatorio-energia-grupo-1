@@ -46,3 +46,17 @@ Fuentes -> BRONCE (dato tal cual + linaje) -> PLATA (limpio) -> ORO (modelo estr
 ## 🤖 Uso de IA
 
 (Declarar aquí qué herramientas de IA se usaron y para qué.)
+
+## 🛰️ Fuente propia: NASA POWER
+**Qué es:** servicio gratuito de la NASA con datos diarios de clima y energía solar,
+calculados con satélites y modelos, para cualquier punto del planeta.
+**De dónde viene:** API REST https://power.larc.nasa.gov/api/temporal/daily/point
+(sin usuario ni clave). Script: `src/extract/nasa_power.py` →
+`data/bronze/nasa_power_diario.parquet`.
+**Qué descargamos:** radiación solar (ALLSKY_SFC_SW_DWN), temperatura (T2M) y lluvia (PRECTOTCORR),
+del 1-ene-2024 al 30-sep-2026, en Medellín, el embalse Peñol-Guatapé, Hidroituango y La Guajira.
+**Para qué la usaremos:** responder la pregunta propia del equipo: durante El Niño 2026,
+¿cuánto aumentó la radiación solar y cuánto compensó la generación solar la caída de la hidráulica?
+Se cruza con XM (generación por planta + catálogo de plantas) y NOAA (ONI).
+Además cubre los meses recientes que el IDEAM todavía no publica.
+
