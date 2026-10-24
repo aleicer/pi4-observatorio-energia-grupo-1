@@ -94,4 +94,6 @@ https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/2
 
 **Pull Request de hallazgos y bitácora:**
 
-[Agregar enlace cuando esté creado].
+**Pull Request de hallazgos y bitácora:**
+
+https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/7
