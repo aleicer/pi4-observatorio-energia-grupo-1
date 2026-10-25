@@ -162,9 +162,9 @@ Pruebas automáticas:
 
 | Integrante | Video |
 |---|---|
-| Aleicer Vesga Rueda | _(pendiente)_ |
-| Jaider Morales | _(pendiente)_ |
-| Guillermo León Loaiza | _(pendiente)_ |
+| Aleicer Vesga Rueda | [Ver video](https://drive.google.com/file/d/163Wuja0SsmBLQEGa1KERaVIvo3C-EkqF/view?usp=drivesdk) |
+| Jaider Morales | [Ver video](https://drive.google.com/file/d/1ZDGnIt2TOh8p0XkoftEHaWsDAKZ9k53b/view?usp=sharing) |
+| Guillermo León Loaiza | [Ver video](https://drive.google.com/file/d/1T8Tba5aNBp9DUU-63DiCZsT3N2LP0xPE/view?usp=sharing) |
 
 ## 🤖 Uso de IA
 
