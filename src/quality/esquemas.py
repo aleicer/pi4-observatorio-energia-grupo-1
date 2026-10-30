@@ -73,3 +73,19 @@ ESQUEMA_VENTAS = pa.DataFrameSchema(
     # strict=True: la tabla no puede traer columnas que no esten en este esquema
     strict=True,
 )
+# --------------------------------------------------------------------------
+# NASA POWER: clima diario por punto (src/silver/nasa_power.py) 
+# --------------------------------------------------------------------------
+ESQUEMA_NASA = pa.DataFrameSchema(
+    {
+        "punto": Column(str), 
+        "latitud": Column(float, Check.in_range(-5, 15)),      # Colombia 
+        "longitud": Column(float, Check.in_range(-82, -66)), 
+        "fecha": Column(pa.Date), 
+        "radiacion_kwh_m2": Column(float, Check.in_range(0, 12), nullable=True), 
+        "temperatura_c": Column(float, Check.in_range(-10, 45), nullable=True), 
+        "precipitacion_mm": Column(float, Check.in_range(0, 500), nullable=True), 
+     }, 
+     unique=["punto", "fecha"], 
+     strict=True, 
+)
