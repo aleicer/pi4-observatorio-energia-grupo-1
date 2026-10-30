@@ -73,3 +73,34 @@ ESQUEMA_VENTAS = pa.DataFrameSchema(
     # strict=True: la tabla no puede traer columnas que no esten en este esquema
     strict=True,
 )
+
+# ---------------------------------------------------------------------------
+# NOAA: índice ONI por mes
+# ---------------------------------------------------------------------------
+
+ESQUEMA_NOAA = pa.DataFrameSchema(
+    {
+        "periodo": Column(
+            str,
+            Check.str_matches(r"^\d{4}-(0[1-9]|1[0-2])$")
+        ),
+        "anio": Column(int, Check.in_range(1950, 2100)),
+        "mes": Column(int, Check.in_range(1, 12)),
+        "trimestre_movil": Column(
+            str,
+            Check.isin([
+                "DJF", "JFM", "FMA", "MAM",
+                "AMJ", "MJJ", "JJA", "JAS",
+                "ASO", "SON", "OND", "NDJ"
+            ])
+        ),
+        "oni": Column(float, Check.in_range(-5, 5)),
+        "temp_mar_c": Column(float, Check.in_range(20, 35)),
+        "fase_enso": Column(
+            str,
+            Check.isin(["El Niño", "La Niña", "Neutral"])
+        ),
+    },
+    unique=["periodo"],
+    strict=True,
+)
