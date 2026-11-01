@@ -97,3 +97,39 @@ https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/2
 **Pull Request de hallazgos y bitácora:**
 
 https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/7
+
+## Semanas 3 y 4 (26 de octubre – 8 de noviembre de 2026)
+
+**Rol:** Data Quality Analyst.
+
+**Actividades realizadas:**
+
+Durante la EA2 trabajé en la limpieza de los datos del índice ONI de NOAA para la capa plata del proyecto.
+
+Primero agregué un esquema de validación utilizando Pandera, con el que se revisan los tipos de datos, los valores permitidos, el formato de los periodos y que no existan meses repetidos.
+
+Después desarrollé el archivo `src/silver/noaa.py`, en el que convertí los trimestres móviles del ONI a su mes central. Por ejemplo, DJF corresponde a enero y JFM a febrero. También agregué una función que clasifica cada registro como El Niño, La Niña o Neutral, dependiendo del valor del ONI.
+
+Al ejecutar la transformación se procesaron 920 registros. Los 920 pasaron la validación de Pandera y ninguno tuvo que enviarse a cuarentena.
+
+Revisé los resultados y encontré que 448 meses quedaron clasificados como Neutral, 238 como La Niña y 234 como El Niño. También comprobé que no había periodos duplicados.
+
+**Qué aprendí:**
+
+Aprendí a utilizar Pandera para validar los datos antes de guardarlos, a transformar los trimestres móviles del ONI en periodos mensuales y a registrar métricas de calidad. También comprendí mejor la diferencia entre guardar los datos originales en bronce y preparar información validada en plata.
+
+**Bloqueos y cómo los resolví:**
+
+Al instalar las dependencias de la EA2 tuve un problema con dbt porque una descarga fallaba durante la verificación del certificado SSL. Lo solucioné instalando versiones compatibles de dbt Core y dbt-duckdb. Después pude instalar Pandera y continuar con el proyecto.
+
+**Horas dedicadas:** [Completar con las horas reales].
+
+**Evidencias:**
+
+- Esquema de validación de NOAA: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/7f9d0e9
+- Limpieza de NOAA: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/80670e7
+- Pull Request de NOAA: [PENDIENTE "OJO"].
+
+**Actividades pendientes de la EA2:**
+
+Incorporar las pruebas nuevas con pytest, elaborar el diccionario de datos de la capa oro y completar la sustentación individual.

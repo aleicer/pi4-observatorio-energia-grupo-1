@@ -73,19 +73,75 @@ ESQUEMA_VENTAS = pa.DataFrameSchema(
     # strict=True: la tabla no puede traer columnas que no esten en este esquema
     strict=True,
 )
-# --------------------------------------------------------------------------
-# NASA POWER: clima diario por punto (src/silver/nasa_power.py) 
-# --------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# NASA POWER: clima diario por punto
+# ---------------------------------------------------------------------------
+
 ESQUEMA_NASA = pa.DataFrameSchema(
     {
-        "punto": Column(str), 
-        "latitud": Column(float, Check.in_range(-5, 15)),      # Colombia 
-        "longitud": Column(float, Check.in_range(-82, -66)), 
-        "fecha": Column(pa.Date), 
-        "radiacion_kwh_m2": Column(float, Check.in_range(0, 12), nullable=True), 
-        "temperatura_c": Column(float, Check.in_range(-10, 45), nullable=True), 
-        "precipitacion_mm": Column(float, Check.in_range(0, 500), nullable=True), 
-     }, 
-     unique=["punto", "fecha"], 
-     strict=True, 
+        "punto": Column(str),
+        "latitud": Column(float, Check.in_range(-5, 15)),
+        "longitud": Column(float, Check.in_range(-82, -66)),
+        "fecha": Column(pa.Date),
+        "radiacion_kwh_m2": Column(
+            float,
+            Check.in_range(0, 12),
+            nullable=True,
+        ),
+        "temperatura_c": Column(
+            float,
+            Check.in_range(-10, 45),
+            nullable=True,
+        ),
+        "precipitacion_mm": Column(
+            float,
+            Check.in_range(0, 500),
+            nullable=True,
+        ),
+    },
+    unique=["punto", "fecha"],
+    strict=True,
+)
+
+# ---------------------------------------------------------------------------
+# NOAA: índice ONI por mes
+# ---------------------------------------------------------------------------
+
+ESQUEMA_NOAA = pa.DataFrameSchema(
+    {
+        "periodo": Column(
+            str,
+            Check.str_matches(r"^\d{4}-(0[1-9]|1[0-2])$"),
+        ),
+        "anio": Column(int, Check.in_range(1950, 2100)),
+        "mes": Column(int, Check.in_range(1, 12)),
+        "trimestre_movil": Column(
+            str,
+            Check.isin(
+                [
+                    "DJF",
+                    "JFM",
+                    "FMA",
+                    "MAM",
+                    "AMJ",
+                    "MJJ",
+                    "JJA",
+                    "JAS",
+                    "ASO",
+                    "SON",
+                    "OND",
+                    "NDJ",
+                ]
+            ),
+        ),
+        "oni": Column(float, Check.in_range(-5, 5)),
+        "temp_mar_c": Column(float, Check.in_range(20, 35)),
+        "fase_enso": Column(
+            str,
+            Check.isin(["El Niño", "La Niña", "Neutral"]),
+        ),
+    },
+    unique=["periodo"],
+    strict=True,
 )
