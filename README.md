@@ -79,6 +79,7 @@ python -m pytest                      # pruebas automáticas
 - La **primera ejecución tarda entre 20 y 25 minutos**: XM unos 5 minutos y el IDEAM el resto (es la fuente más lenta). Las siguientes terminan en segundos, porque omiten lo que ya existe.
 - El Excel de EnerAndes ya viene en `data/insumos/`; no hay que copiar nada.
 - Para descargar todo de nuevo: `python -m src.pipeline --forzar`. Para una sola fuente: `python -m src.extract.xm` (también `ideam`, `noaa`, `enerandes`, `nasa_power`).
+- Para transformar NASA POWER a la capa plata, primero ejecuta `python -m src.extract.nasa_power` y luego `python -m src.silver.nasa_power`. El módulo Silver requiere que exista `data/bronze/nasa_power_diario.parquet`.
 - Las fechas, URLs y métricas se cambian en un solo lugar: `src/config.py`.
 
 Comandos adicionales:
