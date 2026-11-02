@@ -127,9 +127,48 @@ Al instalar las dependencias de la EA2 tuve un problema con dbt porque una desca
 **Evidencias:**
 
 - Esquema de validación de NOAA: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/7f9d0e9
+
 - Limpieza de NOAA: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/80670e7
-- Pull Request de NOAA: [PENDIENTE "OJO"].
 
-**Actividades pendientes de la EA2:**
+- Pull Request de NOAA: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/10
 
-Incorporar las pruebas nuevas con pytest, elaborar el diccionario de datos de la capa oro y completar la sustentación individual.
+### Pruebas automatizadas de calidad de datos
+
+Durante la EA2 desarrollé ocho pruebas automatizadas nuevas para comprobar las reglas de limpieza y transformación de la capa plata.
+
+En `tests/test_noaa.py` elaboré cuatro pruebas para verificar la clasificación de las fases ENSO, la conversión de trimestres móviles a meses centrales, el tratamiento numérico del índice ONI y el rechazo de fases inválidas mediante Pandera.
+
+En `tests/test_reglas_plata.py` desarrollé tres pruebas adicionales. Dos comprueban la interpretación de diferentes formatos de fecha y la conversión de unidades de energía de MWh a kWh en EnerAndes. La tercera verifica la transformación de datos horarios de XM desde columnas a filas.
+
+Finalmente, incorporé una prueba en `tests/test_nasa_power.py` para comprobar que los valores `-999` se conviertan en datos faltantes y que diferentes variables climáticas de una misma fecha se organicen en una sola fila.
+
+Ejecuté `python -m pytest -v` y obtuve como resultado **25 pruebas aprobadas, sin errores**, incluyendo las pruebas existentes del proyecto.
+
+**Evidencia:**
+
+- Pull Request #14 — Pruebas de calidad: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/14
+- Commit de pruebas EnerAndes y XM: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/f58c6a2
+- Commit de prueba NASA POWER: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/50c1499
+
+### Diccionario de datos de la capa oro
+
+Elaboré el documento `docs/diccionario_datos.md`, en el que describí el modelo dimensional del Observatorio de Energía.
+
+Documenté cuatro tablas: `dim_mes`, `dim_municipio`, `dim_segmento` y `fact_ventas_mensual`, incluyendo sus columnas, tipos de datos, claves, relaciones, descripciones y reglas de calidad.
+
+Para comprobar los tipos de datos utilicé DuckDB y consulté la estructura de las tablas generadas. También ejecuté el comando `dbt build --project-dir dbt --profiles-dir dbt`, que finalizó con **18 operaciones exitosas**, entre ellas 13 pruebas de calidad, sin errores ni advertencias.
+
+**Evidencia:**
+
+- Pull Request #15 — Diccionario de datos: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/15
+- Commit del diccionario: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/9fa5b8a
+
+### Estado de las actividades
+
+La limpieza de NOAA, las ocho pruebas nuevas y el diccionario de datos están desarrollados y publicados en GitHub.
+
+El Pull Request #10 de NOAA fue integrado a la rama principal. Los Pull Requests #14 y #15 están pendientes de revisión y aprobación.
+
+Para finalizar la entrega individual de la EA2 quedan pendientes la sustentación en video, el archivo ZIP de entrega y las revisiones de Pull Requests exigidas por la guía, cuando corresponda.
+
+**Horas dedicadas:** 8 horas.
