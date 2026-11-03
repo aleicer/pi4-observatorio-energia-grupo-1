@@ -1,75 +1,308 @@
-# Pruebas de dbt sobre la capa oro. "dbt build" las ejecuta despues de crear cada tabla.
-# Es un archivo YAML: no se ejecuta; dbt lo lee para saber que probar en cada tabla.
-
-# La version del formato de este archivo (dbt pide 2)
+# Descripcion y pruebas de la capa oro (esquema estrella).
+# "dbt build" crea cada tabla y despues corre sus pruebas:
+#   unique / not_null en las llaves de las dimensiones
+#   relationships en las llaves de los hechos (cada llave debe existir en su dimension)
+#   accepted_values en las columnas que solo aceptan ciertos valores
+# El GRANO de cada tabla (que representa una fila) va al inicio de su descripcion.
 version: 2
 
-# La lista de modelos (tablas) y sus pruebas
 models:
-  # La tabla dim_mes
-  - name: dim_mes
-    # Una descripcion corta de la tabla (sale en la documentacion de dbt)
-    description: "Un mes con ventas."
-    # Las columnas que se prueban
+  # ----------------------------------------------------------------------------
+  # DIMENSIONES
+  # ----------------------------------------------------------------------------
+  - name: dim_fecha
+    description: "Grano: un día del calendario (2023-01-01 a 2026-09-30), con su mes, trimestre, día de la semana y fase ENSO del mes según NOAA."
     columns:
-      # La columna mes_id (la llave)
-      - name: mes_id
-        # unique: no se repite; not_null: nunca esta vacia
+      - name: fecha_id
+        description: "Llave del día en formato AAAAMMDD (20260315)."
         data_tests: [unique, not_null]
-
-  # La tabla dim_municipio
-  - name: dim_municipio
-    description: "Un municipio de Antioquia con su codigo DIVIPOLA."
-    columns:
-      # La llave: no se repite y nunca esta vacia
-      - name: municipio_id
+      - name: fecha
+        description: "La fecha."
         data_tests: [unique, not_null]
-
-  # La tabla dim_segmento
-  - name: dim_segmento
-    description: "Un segmento de cliente."
-    columns:
-      # La llave: no se repite y nunca esta vacia
-      - name: segmento_id
-        data_tests: [unique, not_null]
-
-  # La tabla de hechos
-  - name: fact_ventas_mensual
-    description: "Ventas de energia por mes, municipio, segmento y tipo de compra."
-    columns:
-      # La llave al mes
-      - name: mes_id
+      - name: anio
+        description: "Año."
+      - name: mes
+        description: "Número del mes (1 a 12)."
+      - name: nombre_mes
+        description: "Nombre del mes en español."
+      - name: periodo
+        description: "Mes en formato AAAA-MM."
+      - name: trimestre
+        description: "Trimestre del año (1 a 4)."
+      - name: dia_semana
+        description: "Día de la semana: 1 = lunes ... 7 = domingo."
+      - name: nombre_dia
+        description: "Nombre del día en español."
+      - name: es_fin_de_semana
+        description: "Verdadero si es sábado o domingo."
+      - name: oni
+        description: "Índice Oceánico El Niño del mes (anomalía de temperatura del Pacífico, °C)."
+      - name: fase_enso
+        description: "El Niño (ONI ≥ 0,5), La Niña (ONI ≤ −0,5), Neutral, o Sin dato si NOAA aún no publica el mes."
         data_tests:
-          # Nunca esta vacia
           - not_null
-          # relationships: cada mes_id del hecho debe existir en dim_mes
-          # (si no, seria una venta de un mes que no esta en la dimension)
+          - accepted_values:
+              arguments:
+                values: ["El Niño", "La Niña", "Neutral", "Sin dato"]
+
+  - name: dim_hora
+    description: "Grano: una hora del día (0 a 23), con su franja de demanda."
+    columns:
+      - name: hora
+        description: "Llave: hora del día; 0 = de 00:00 a 01:00 ... 23 = de 23:00 a 24:00."
+        data_tests: [unique, not_null]
+      - name: hora_inicio
+        description: "Hora de inicio como texto (07:00)."
+      - name: franja
+        description: "Pico (17 a 21 h), Valle (0 a 5 h) o Media."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Pico", "Media", "Valle"]
+
+  - name: dim_municipio
+    description: "Grano: un municipio de Antioquia con ventas de EnerAndes, con su código DIVIPOLA."
+    columns:
+      - name: municipio_id
+        description: "Llave: código DIVIPOLA del DANE, 5 dígitos ('05001' = Medellín)."
+        data_tests: [unique, not_null]
+      - name: municipio
+        description: "Nombre oficial del municipio."
+        data_tests: [not_null]
+      - name: estaciones_ideam
+        description: "Cuántas estaciones del IDEAM hay en el municipio."
+
+  - name: dim_segmento
+    description: "Grano: un segmento de cliente de EnerAndes."
+    columns:
+      - name: segmento_id
+        description: "Llave del segmento (1 a 4)."
+        data_tests: [unique, not_null]
+      - name: segmento
+        description: "Residencial, Comercial, Industrial o No informado."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Residencial", "Comercial", "Industrial", "No informado"]
+
+  - name: dim_recurso
+    description: "Grano: una planta de generación de energía, del catálogo ListadoRecursos de XM."
+    columns:
+      - name: recurso_id
+        description: "Llave: código SIC de la planta en XM."
+        data_tests: [unique, not_null]
+      - name: nombre
+        description: "Nombre de la planta."
+      - name: tipo
+        description: "HIDRAULICA, TERMICA, SOLAR, EOLICA, COGENERADOR o DESCONOCIDO (planta que genera pero no está en el catálogo)."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["HIDRAULICA", "TERMICA", "SOLAR", "EOLICA", "COGENERADOR", "DESCONOCIDO"]
+      - name: fuente_energia
+        description: "Combustible o recurso: AGUA, GAS, CARBON, RAD SOLAR, VIENTO..."
+      - name: despacho
+        description: "Si XM la despacha centralmente o no."
+      - name: clase
+        description: "Clase de recurso (NORMAL, FILO DE AGUA, AUTOGENERADOR...)."
+      - name: agente
+        description: "Código de la empresa dueña de la planta."
+      - name: fecha_operacion
+        description: "Fecha de entrada en operación."
+      - name: estado
+        description: "OPERACION, PRUEBAS o DESCONOCIDO."
+      - name: es_renovable
+        description: "Verdadero si es hidráulica, solar o eólica."
+
+  - name: dim_estacion
+    description: "Grano: una estación meteorológica del IDEAM en Antioquia."
+    columns:
+      - name: estacion_id
+        description: "Llave: código de 10 dígitos de la estación."
+        data_tests: [unique, not_null]
+      - name: nombre
+        description: "Nombre de la estación."
+      - name: municipio
+        description: "Municipio donde está la estación."
+      - name: municipio_id
+        description: "Código DIVIPOLA, solo si el municipio tiene ventas de EnerAndes."
+        data_tests:
           - relationships:
               arguments:
-                # La tabla con la que se compara
-                to: ref('dim_mes')
-                # La columna de esa tabla
-                field: mes_id
-      # La llave al municipio: nunca vacia y debe existir en dim_municipio
+                to: ref('dim_municipio')
+                field: municipio_id
+      - name: zona_hidrografica
+        description: "Cuenca a la que pertenece la estación."
+      - name: latitud
+        description: "Latitud (grados)."
+      - name: longitud
+        description: "Longitud (grados)."
+
+  # ----------------------------------------------------------------------------
+  # HECHOS
+  # ----------------------------------------------------------------------------
+  - name: fact_ventas_mensual
+    description: "Grano: un mes, un municipio, un segmento y un tipo de compra. Ventas de energía de EnerAndes 2023-2026 (el mes se une con dim_fecha en su primer día)."
+    columns:
+      - name: fecha_id
+        description: "Primer día del mes de la venta (AAAAMM01)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha_id
       - name: municipio_id
+        description: "Código DIVIPOLA del municipio."
         data_tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('dim_municipio')
                 field: municipio_id
-      # La llave al segmento: nunca vacia y debe existir en dim_segmento
       - name: segmento_id
+        description: "Segmento del cliente."
         data_tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('dim_segmento')
                 field: segmento_id
-      # El tipo de compra
       - name: tipo_compra
+        description: "Bolsa o Contrato."
         data_tests:
-          # accepted_values: solo se aceptan los valores de esta lista
           - accepted_values:
               arguments:
                 values: ["Bolsa", "Contrato"]
+      - name: energia_kwh
+        description: "Energía vendida en el mes (kWh; la hoja 2024 venía en MWh y se convirtió)."
+        data_tests: [not_null]
+      - name: valor_cop
+        description: "Valor facturado (COP). Vacío cuando el Excel no lo traía."
+      - name: clientes
+        description: "Número de clientes."
+
+  - name: fact_mercado_horario
+    description: "Grano: una fecha y una hora. Precio de bolsa y demanda de energía de Colombia (XM), 2024-2026."
+    columns:
+      - name: fecha_id
+        description: "Día (AAAAMMDD)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha_id
+      - name: hora
+        description: "Hora del día (0 a 23)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_hora')
+                field: hora
+      - name: precio_bolsa_cop_kwh
+        description: "Precio de bolsa nacional (COP/kWh)."
+      - name: demanda_kwh
+        description: "Demanda real de energía del país en esa hora (kWh)."
+
+  - name: fact_generacion_recurso
+    description: "Grano: una fecha, una hora y una planta. Energía generada por cada planta (XM), 2024-2026."
+    columns:
+      - name: fecha_id
+        description: "Día (AAAAMMDD)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha_id
+      - name: hora
+        description: "Hora del día (0 a 23)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_hora')
+                field: hora
+      - name: recurso_id
+        description: "Planta que generó."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_recurso')
+                field: recurso_id
+      - name: generacion_kwh
+        description: "Energía generada en esa hora (kWh)."
+        data_tests: [not_null]
+
+  - name: fact_hidrologia_diaria
+    description: "Grano: una fecha. Volumen útil de los embalses y aportes hídricos del país (XM), 2024-2026."
+    columns:
+      - name: fecha_id
+        description: "Día (AAAAMMDD)."
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha_id
+      - name: volumen_util_pct
+        description: "Porcentaje de llenado de los embalses (0 a 100)."
+      - name: aportes_kwh
+        description: "Aportes hídricos en energía (kWh)."
+
+  - name: fact_clima_diario
+    description: "Grano: una fecha y una estación del IDEAM. Lluvia y temperatura medidas en Antioquia, 2025-2026."
+    columns:
+      - name: fecha_id
+        description: "Día (AAAAMMDD)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha_id
+      - name: estacion_id
+        description: "Estación que midió."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_estacion')
+                field: estacion_id
+      - name: precipitacion_mm
+        description: "Lluvia del día (mm). Vacía si la estación solo mide temperatura."
+      - name: temp_media_c
+        description: "Temperatura media del día (°C)."
+      - name: temp_min_c
+        description: "Temperatura mínima del día (°C)."
+      - name: temp_max_c
+        description: "Temperatura máxima del día (°C)."
+
+  - name: fact_clima_satelital
+    description: "Grano: una fecha y un punto. Radiación solar, temperatura y lluvia por satélite (NASA POWER, fuente propia), 2024-2026."
+    columns:
+      - name: fecha_id
+        description: "Día (AAAAMMDD)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha_id
+      - name: punto
+        description: "Lugar: Medellin, Embalse El Penol-Guatape, Hidroituango o La Guajira (zona solar y eolica)."
+        data_tests: [not_null]
+      - name: latitud
+        description: "Latitud del punto (grados)."
+      - name: longitud
+        description: "Longitud del punto (grados)."
+      - name: radiacion_kwh_m2
+        description: "Radiación solar que llega al suelo (kWh/m² por día). Vacía donde NASA traía −999."
+      - name: temperatura_c
+        description: "Temperatura del aire a 2 m (°C)."
+      - name: precipitacion_mm
+        description: "Lluvia estimada por satélite (mm por día)."
