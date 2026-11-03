@@ -1,6 +1,6 @@
 # Reporte de calidad de la capa plata
 
-> Generado con `python -m src.transformar` el 2026-10-31 09:17. No se edita a mano: se reemplaza cada vez que se construye la capa plata.
+> Generado con `python -m src.transformar` el 2026-11-03 07:18. No se edita a mano: se reemplaza cada vez que se construye la capa plata.
 
 ## Resumen
 
@@ -10,13 +10,14 @@
 | IDEAM | `ideam_estaciones` | 47,153 | 73 | 0 | 3 |
 | IDEAM | `ideam_precipitacion_diaria` | 29,804 | 29,691 | 113 | 6 |
 | IDEAM | `ideam_temperatura_diaria` | 17,349 | 16,720 | 629 | 8 |
+| NASA POWER | `nasa_power_diario` | 12,048 | 4,016 | 0 | 4 |
 | NOAA | `noaa_oni_mensual` | 920 | 920 | 0 | 5 |
 | XM | `xm_generacion_recurso` | 350,345 | 5,935,362 | 0 | 4 |
 | XM | `xm_hidrologia_diaria` | 2,008 | 1,004 | 0 | 4 |
 | XM | `xm_mercado_horario` | 2,008 | 24,096 | 0 | 6 |
 | XM | `xm_recursos` | 2,493 | 2,501 | 0 | 4 |
 
-**Total: 59 reglas de calidad y 785 filas en cuarentena.**
+**Total: 63 reglas de calidad y 785 filas en cuarentena.**
 
 ## EnerAndes – `enerandes_ventas`
 
@@ -97,6 +98,17 @@ Filas en bronce: 17,349 · Filas en plata: 16,720 · Filas en cuarentena: 629
 - Temperatura mínima menor a 2 °C (sensor en cero): 605 filas
 - Más observaciones que minutos del día (datos repetidos en la fuente): 15 filas
 - Temperatura máxima mayor a 42 °C (error del sensor): 9 filas
+
+## NASA POWER – `nasa_power_diario`
+
+Filas en bronce: 12,048 · Filas en plata: 4,016 · Filas en cuarentena: 0
+
+| # | Problema | Regla aplicada | Antes | Después |
+|---|---|---|---:|---:|
+| 1 | Valor -999 (sin dato) tratado como numero | Cambiarlo por vacio | 4 | 0 |
+| 2 | Fecha como texto AAAAMMDD | Convertir a fecha | 12,048 | 0 |
+| 3 | Mediciones repetidas | Dejar una sola | 0 | 0 |
+| 4 | Una fila por variable (formato largo) | Pasar a una fila por punto y dia | 12,048 | 4,016 |
 
 ## NOAA – `noaa_oni_mensual`
 
