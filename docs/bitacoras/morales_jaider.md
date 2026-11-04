@@ -122,7 +122,7 @@ Aprendí a utilizar Pandera para validar los datos antes de guardarlos, a transf
 
 Al instalar las dependencias de la EA2 tuve un problema con dbt porque una descarga fallaba durante la verificación del certificado SSL. Lo solucioné instalando versiones compatibles de dbt Core y dbt-duckdb. Después pude instalar Pandera y continuar con el proyecto.
 
-**Horas dedicadas:** [Completar con las horas reales].
+**Horas dedicadas:** 6 horas.
 
 **Evidencias:**
 
@@ -152,23 +152,56 @@ Ejecuté `python -m pytest -v` y obtuve como resultado **25 pruebas aprobadas, s
 
 ### Diccionario de datos de la capa oro
 
-Elaboré el documento `docs/diccionario_datos.md`, en el que describí el modelo dimensional del Observatorio de Energía.
+Inicialmente elaboré el diccionario de datos del modelo de cuatro tablas, incorporado mediante el Pull Request #15.
 
-Documenté cuatro tablas: `dim_mes`, `dim_municipio`, `dim_segmento` y `fact_ventas_mensual`, incluyendo sus columnas, tipos de datos, claves, relaciones, descripciones y reglas de calidad.
+Después actualicé el documento `docs/diccionario_datos.md` para que correspondiera al modelo final construido por el equipo: seis dimensiones y seis tablas de hechos.
 
-Para comprobar los tipos de datos utilicé DuckDB y consulté la estructura de las tablas generadas. También ejecuté el comando `dbt build --project-dir dbt --profiles-dir dbt`, que finalizó con **18 operaciones exitosas**, entre ellas 13 pruebas de calidad, sin errores ni advertencias.
+Documenté las columnas, los tipos consultados directamente en DuckDB, la granularidad, las claves, las relaciones, la procedencia y las pruebas de calidad de cada tabla.
+
+También actualicé la relación temporal de las ventas: el modelo anterior utilizaba `dim_mes`, mientras que el modelo final utiliza `dim_fecha`. Cada venta mensual se relaciona con el primer día de su mes mediante `fecha_id`.
+
+Para validar el modelo ejecuté `python -m src.transformar`, que construyó doce tablas de oro y diez vistas de staging, y aprobó las 54 pruebas de dbt.
+
+El resultado final fue:
+
+`PASS=76 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=76`
+
+Estas 76 operaciones corresponden a 22 modelos y 54 pruebas de calidad.
+
+Además, ejecuté `python -m pytest -v` y obtuve 25 pruebas aprobadas.
+
+La actualización del diccionario fue aprobada y fusionada por Aleicer el 4 de noviembre de 2026 mediante el Pull Request #18.
+
+**Evidencias:**
+
+- Pull Request #15 — Diccionario inicial: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/15
+- Pull Request #18 — Diccionario del modelo final: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/18
+- Commit de la actualización: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/750ec6e
+
+### Dificultades durante la actualización
+
+Al construir el modelo final encontré que mi archivo local antiguo de precipitación del IDEAM no contenía la columna `zonahidrografica`, necesaria para preparar la dimensión de estaciones.
+
+Conservé ese archivo como respaldo y completé la descarga actualizada, aprovechando las semanas que ya estaban guardadas. Después ejecuté nuevamente la transformación y la construcción terminó sin errores.
+
+También revisé el reporte de calidad de mi ejecución local. En hidrología XM se separaron 731 filas en cuarentena por incumplir las reglas de volumen útil o aportes. Registré esta situación en el diccionario como una observación de esa ejecución local.
+
+Aprendí que una construcción puede aprobar las pruebas configuradas y aun así requerir una revisión de la cobertura y calidad de los datos de origen.
+
+### Revisión del trabajo del equipo
+
+Revisé y aprobé el Pull Request #17, correspondiente al modelo final de la capa oro.
 
 **Evidencia:**
 
-- Pull Request #15 — Diccionario de datos: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/15
-- Commit del diccionario: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/9fa5b8a
+- Pull Request #17 — Modelo dimensional final: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/17
 
 ### Estado de las actividades
 
-La limpieza de NOAA, las ocho pruebas nuevas y el diccionario de datos están desarrollados y publicados en GitHub.
+La limpieza de NOAA, las ocho pruebas automatizadas nuevas, el diccionario inicial y su actualización al modelo final están incorporados a la rama principal.
 
-El Pull Request #10 de NOAA fue integrado a la rama principal. Los Pull Requests #14 y #15 están pendientes de revisión y aprobación.
+Los Pull Requests #10, #14, #15, #16 y #18 fueron fusionados.
 
-Para finalizar la entrega individual de la EA2 quedan pendientes la sustentación en video, el archivo ZIP de entrega y las revisiones de Pull Requests exigidas por la guía, cuando corresponda.
+Para cerrar la documentación de mi entrega queda incorporar el enlace del video de sustentación de la EA2 y verificar el archivo ZIP y las demás evidencias solicitadas por la guía.
 
 **Horas dedicadas:** 8 horas.
