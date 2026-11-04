@@ -25,4 +25,33 @@
 
 ### Horas dedicadas
 
-_(completar)_
+_Alrededor de 6 horas para el desarrollo_
+
+## Semanas 3 y 4 (26 de octubre – 8 de noviembre de 2026) – EA2
+
+**Rol:** Líder técnico / Data Engineer y Analytics Engineer
+
+### ¿Qué hice?
+
+- **Base de la EA2:** integré el código de la clase del 26 de octubre (`src/silver/`, `src/quality/`, `dbt/`, `tests/test_limpieza.py`) y agregué las herramientas comunes de plata (`src/silver/comun.py`: medir cada regla, cuarentena con motivo y guardar validando con pandera), el reporte de calidad generado por el código (`src/silver/reporte.py`) y el comando único `python -m src.transformar`. → [PR #9](https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/9)
+- **EnerAndes:** amplié la limpieza de la clase a las 4 hojas del Excel y las uní en una sola tabla: encabezados distintos, títulos encima, totales, fechas en 4 formatos (incluido `01/03/2026` = marzo y meses en inglés como `aug-24`), MWh a kWh, municipios con DIVIPOLA, duplicados y cuarentena. 19 reglas. → [PR #11](https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/11)
+- **XM e IDEAM:** XM de 24 columnas por hora a una fila por hora (precio, demanda y 5,9 millones de filas de generación por planta), hidrología y catálogo de plantas; IDEAM con fechas, números, estaciones con su municipio y cuarentena de valores imposibles. → [PR #12](https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/12)
+- **Capa oro:** el esquema estrella en dbt con 6 hechos y 6 dimensiones (`dim_fecha` con fase ENSO), el grano de cada hecho en `schema.yml`, 76 pruebas y `docs/modelo_dimensional.md` con el diagrama. → [PR #17](https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/17)
+- Revisé y aprobé los PRs de Jaider y Guillermo, actualicé el README y creé la tag `ea2`.
+
+### ¿Qué aprendí?
+
+- Que limpiar no es solo corregir: cada regla se **mide** antes y después, y lo que no se puede corregir se aparta en **cuarentena** con su motivo en vez de borrarlo.
+- Que pandera funciona como un contrato: si una tabla no cumple sus reglas, no se guarda, y así ningún dato sucio llega a la capa oro.
+- Que el **grano** es la decisión más importante del modelo dimensional: define qué representa cada fila y qué se puede sumar. Por eso cada hecho tiene su prueba de grano en dbt.
+- Que las pruebas `relationships` de dbt encuentran problemas reales: 10 plantas generaban energía pero no estaban en el catálogo de XM.
+
+### Bloqueos y cómo los resolví
+
+- **Fechas ambiguas:** `01/03/2026` podía ser el 3 de enero o el 1 de marzo. La hoja 2026 usa día/mes/año, así que se toma el segundo número como mes, y quedó probado con pytest.
+- **Sensores en cero en el IDEAM:** 605 días con temperatura mínima de 0 °C en Medellín y Rionegro. En lugar de dejarlos (bajarían el promedio) o inventar un valor, se mandaron a cuarentena.
+- **Conflictos en `esquemas.py`:** dos compañeros agregaban su esquema al final del mismo archivo. Los esquemas de XM e IDEAM los separé en archivos propios para evitar más choques.
+
+### Horas dedicadas
+
+_Alrededor de 4 horas_
