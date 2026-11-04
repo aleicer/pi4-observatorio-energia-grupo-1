@@ -1,35 +1,54 @@
 # Observatorio Energía y Clima – Grupo 1
 
 > Proyecto Integrado IV – Integración de Información · IU Digital de Antioquia · 2026-2
-> Entrega: **EA1 – Extracción de datos de fuentes reales con Python** (capa bronce) · tag `ea1`
+>
+> | Entrega | Qué construye | Tag |
+> |---|---|---|
+> | **EA1** – Extracción de datos de fuentes reales con Python | Capa **bronce**: 5 fuentes tal como llegan | `ea1` |
+> | **EA2** – Calidad de datos y modelo dimensional | Capa **plata** (limpieza + pandera) y capa **oro** (esquema estrella con dbt) | `ea2` |
 
 ## 👥 Integrantes
 
-| Nombre | Usuario GitHub | Rol | Qué construyó en la EA1 |
-|---|---|---|---|
-| Aleicer Vesga Rueda | [@aleicer](https://github.com/aleicer) | Líder técnico / Data Engineer y Analytics Engineer | Ampliación de XM (6 métricas + `ListadoRecursos`), IDEAM (precipitación y temperatura), muestras, script de perfilamiento, README y merges |
-| Jaider Morales | [@JaiderMoraless](https://github.com/JaiderMoraless) | Data Quality Analyst | Pruebas automáticas con pytest (`tests/`) y hallazgos de calidad del perfilamiento |
-| Guillermo León Loaiza | [@memo-iud](https://github.com/memo-iud) | BI Analyst / Storyteller | Fuente propia NASA POWER (`src/extract/nasa_power.py`) y su documentación |
+| Nombre | Usuario GitHub | Rol | EA1 | EA2 |
+|---|---|---|---|---|
+| Aleicer Vesga Rueda | [@aleicer](https://github.com/aleicer) | Líder técnico / Data Engineer y Analytics Engineer | Extracción ampliada de XM e IDEAM, muestras, perfilamiento, README | Base de plata y oro, limpieza de EnerAndes (4 hojas), XM e IDEAM, comando `src.transformar`, modelo dbt completo, modelo dimensional, README |
+| Jaider Morales | [@JaiderMoraless](https://github.com/JaiderMoraless) | Data Quality Analyst | Pruebas con pytest y hallazgos del perfilamiento | Limpieza de NOAA (ONI mensual y fase ENSO), 8 pruebas nuevas con pytest, diccionario de datos |
+| Guillermo León Loaiza | [@memo-iud](https://github.com/memo-iud) | BI Analyst / Storyteller | Fuente propia NASA POWER | Limpieza de NASA POWER, consultas de negocio sobre la capa oro |
 
-Como el equipo tiene 3 integrantes y el reto define 4 roles, Aleicer asume también el de Analytics Engineer (modelo dimensional de la EA2).
+Como el equipo tiene 3 integrantes y el reto define 4 roles, Aleicer asume también el de Analytics Engineer.
 
 ## 🎯 Objetivo
 
-Construir la base del **Observatorio de Energía y Clima** para la comercializadora EnerAndes: un pipeline en Python que extrae datos de cinco fuentes reales (mercado eléctrico, clima, El Niño, ventas internas y una fuente propia) y los guarda **tal como llegan**, en Parquet y con el registro de su origen. Esta es la **capa bronce**: sobre ella, en la EA2, se limpiarán y modelarán los datos para analizar el riesgo de precios altos y desabastecimiento ante El Niño 2026.
+Construir el **Observatorio de Energía y Clima** para la comercializadora EnerAndes: integrar datos del mercado eléctrico (XM), del clima (IDEAM y NASA POWER), del fenómeno de El Niño (NOAA) y de las ventas internas (Excel de EnerAndes), dejarlos **limpios y confiables** y organizarlos en un **esquema estrella** listo para el dashboard, para analizar el riesgo de precios altos y desabastecimiento ante El Niño 2026.
 
 ## 🏗️ Arquitectura
 
-```
-Fuentes ──> BRONCE (dato tal cual + linaje) ──> PLATA (limpio) ──> ORO (modelo estrella) ──> Dashboard
-            ▲ esta entrega
+```mermaid
+flowchart LR
+    subgraph F[Fuentes]
+        XM[XM<br/>API REST]
+        ID[IDEAM<br/>datos.gov.co]
+        NO[NOAA<br/>ONI .txt]
+        EA[EnerAndes<br/>Excel]
+        NA[NASA POWER<br/>API REST]
+    end
+    B[(BRONCE<br/>data/bronze/<br/>tal cual llega + linaje)]
+    S[(PLATA<br/>data/silver/<br/>limpio + validado con pandera)]
+    G[(ORO<br/>data/observatorio.duckdb<br/>esquema estrella con dbt)]
+    F -->|python -m src.pipeline| B
+    B -->|src/silver/*.py| S
+    S -->|dbt build| G
+    G --> D[Dashboard<br/>EA3]
+    S -.-> R[docs/reporte_calidad.md]
 ```
 
-Reglas de la capa bronce que sigue el código:
+| Capa | Dónde | Qué tiene | Cómo se construye |
+|---|---|---|---|
+| **Bronce** | `data/bronze/*.parquet` | Los datos **tal como llegan**, con 3 columnas de linaje (`_fuente`, `_origen`, `_extraido_en`) | `python -m src.pipeline` (EA1) |
+| **Plata** | `data/silver/*.parquet` | Los datos **limpios**: fechas como fecha, números como número, nombres unificados, una fila por hora en XM. Cada tabla se valida con **pandera** antes de guardarse; lo que no se puede corregir queda en **cuarentena** (`*_cuarentena.parquet`), no se borra | `src/silver/*.py` (una limpieza por fuente) |
+| **Oro** | `data/observatorio.duckdb` | El **esquema estrella**: 6 tablas de hechos y 6 dimensiones, con 76 pruebas de dbt | `dbt build` (modelos en `dbt/models/`) |
 
-1. **No se modifica nada:** cada fuente se guarda como llega (casi todo como texto). Limpiar es trabajo de la capa plata.
-2. **Linaje:** cada archivo trae 3 columnas extra: `_fuente`, `_origen` (URL o archivo exacto) y `_extraido_en` (fecha y hora UTC).
-3. **Idempotencia:** si un archivo ya existe en `data/bronze/`, el pipeline lo omite. Con `--forzar` se descarga de nuevo.
-4. **Reintentos:** las peticiones HTTP se repiten hasta 4 veces, esperando 2, 4 y 8 segundos.
+Las capas plata y oro se construyen con **un solo comando**: `python -m src.transformar`.
 
 ## 📦 Fuentes de datos (capa bronce)
 
@@ -70,17 +89,24 @@ git clone https://github.com/aleicer/pi4-observatorio-energia-grupo-1.git
 cd pi4-observatorio-energia-grupo-1
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1          # en Git Bash: source .venv/Scripts/activate
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.txt   # incluye pandera, dbt-duckdb y pytest
 
-python -m src.pipeline                # descarga las 5 fuentes a data/bronze/
-python -m pytest                      # pruebas automáticas
+python -m src.pipeline                # 1. BRONCE: descarga las 5 fuentes a data/bronze/
+python -m src.transformar             # 2. PLATA y ORO: limpia, valida, escribe el reporte y corre dbt build
+python -m pytest                      # 3. pruebas automáticas de las reglas
 ```
 
-- La **primera ejecución tarda entre 20 y 25 minutos**: XM unos 5 minutos y el IDEAM el resto (es la fuente más lenta). Las siguientes terminan en segundos, porque omiten lo que ya existe.
-- El Excel de EnerAndes ya viene en `data/insumos/`; no hay que copiar nada.
-- Para descargar todo de nuevo: `python -m src.pipeline --forzar`. Para una sola fuente: `python -m src.extract.xm` (también `ideam`, `noaa`, `enerandes`, `nasa_power`).
-- Para transformar NASA POWER a la capa plata, primero ejecuta `python -m src.extract.nasa_power` y luego `python -m src.silver.nasa_power`. El módulo Silver requiere que exista `data/bronze/nasa_power_diario.parquet`.
+- **`python -m src.pipeline`** tarda entre 20 y 25 minutos la primera vez (el IDEAM es lento); las siguientes, segundos.
+- **`python -m src.transformar`** tarda menos de un minuto:
+  1. ejecuta cada limpieza de `src/silver/` (las encuentra solo: `enerandes`, `ideam`, `nasa_power`, `noaa`, `xm`);
+  2. valida cada tabla con su esquema de pandera (`src/quality/`) antes de guardarla en `data/silver/`;
+  3. escribe `docs/reporte_calidad.md` con la métrica antes y después de cada regla;
+  4. ejecuta `dbt build`: crea el esquema estrella en `data/observatorio.duckdb` y corre sus 76 pruebas. Debe terminar en `PASS=76 ERROR=0`.
+- Solo la capa plata: `python -m src.transformar --solo-plata`. Una sola fuente: `python -m src.silver.xm`.
+- Solo la capa oro: `dbt build --project-dir dbt --profiles-dir dbt`.
+- Una consulta rápida sobre oro: `dbt show --project-dir dbt --profiles-dir dbt --inline "select * from {{ ref('dim_fecha') }} limit 5"`.
 - Las fechas, URLs y métricas se cambian en un solo lugar: `src/config.py`.
+- **No se suben a GitHub** `data/bronze/`, `data/silver/`, `data/observatorio.duckdb`, `dbt/target/` ni `dbt/logs/` (están en `.gitignore`): se regeneran con los comandos de arriba.
 
 Comandos adicionales:
 
@@ -88,11 +114,160 @@ Comandos adicionales:
 |---|---|
 | `python -m src.muestras` | Regenera `data/sample/` con las primeras 200 filas de cada archivo de bronce, en CSV |
 | `python -m src.perfilamiento` | Regenera las tablas de `docs/perfilamiento.md` (conserva los hallazgos escritos a mano) |
+| `python -m src.silver.reporte` | Regenera solo `docs/reporte_calidad.md` a partir de las métricas guardadas |
 | `python -m src.consultar` | Ejecuta las consultas SQL de `consultas/` con DuckDB, directo sobre los Parquet |
 
 > Si PowerShell no deja activar el entorno: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 
-### 📸 Capturas de la consola
+## 🥈 Capa plata: calidad de datos
+
+Cada fuente tiene su limpieza en `src/silver/` con dos funciones: `limpiar()` aplica las reglas una por una y **mide cada
+problema antes y después** (sin leer ni guardar archivos, para poder probarla con pytest), y `main()` lee bronce, limpia y
+llama a `guardar_plata()`, que **valida con pandera** y solo guarda si todo cumple.
+
+**Resumen del [reporte de calidad](docs/reporte_calidad.md)** (generado por el código):
+
+| Fuente | Tabla de plata | Filas en bronce | Filas en plata | Filas en cuarentena | Reglas |
+|---|---|---:|---:|---:|---:|
+| EnerAndes | `enerandes_ventas` | 4.184 | 4.007 | 43 | 19 |
+| IDEAM | `ideam_precipitacion_diaria` | 29.804 | 29.691 | 113 | 6 |
+| IDEAM | `ideam_temperatura_diaria` | 17.349 | 16.720 | 629 | 8 |
+| IDEAM | `ideam_estaciones` | 47.153 | 73 | 0 | 3 |
+| NASA POWER | `nasa_power_diario` | 12.048 | 4.016 | 0 | 4 |
+| NOAA | `noaa_oni_mensual` | 920 | 920 | 0 | 5 |
+| XM | `xm_mercado_horario` | 2.008 | 24.096 | 0 | 6 |
+| XM | `xm_generacion_recurso` | 350.345 | 5.935.362 | 0 | 4 |
+| XM | `xm_hidrologia_diaria` | 2.008 | 1.004 | 0 | 4 |
+| XM | `xm_recursos` | 2.493 | 2.501 | 0 | 4 |
+
+**Total: 63 reglas de calidad y 785 filas en cuarentena.** Algunas reglas con su métrica antes → después:
+
+| Fuente | Problema | Regla aplicada | Antes → Después |
+|---|---|---|---|
+| EnerAndes | Encabezados distintos en cada hoja | Traducir cada encabezado a 8 nombres estándar | 4 → 1 |
+| EnerAndes | Fechas en 4 formatos (`2024-03`, `mar-24`, `03/2024`, `01/03/2026`) | Leer cada formato y dejar `AAAA-MM` (`01/03/2026` es día/mes/año: marzo) | 4 → 1 |
+| EnerAndes | Energía en MWh mezclada con kWh (hoja 2024) | Multiplicar por 1.000 | 337 → 0 |
+| EnerAndes | Municipio escrito de varias formas | Unificar con el código DIVIPOLA | 32 → 15 |
+| EnerAndes | Filas duplicadas | Dejar una sola copia | 120 → 0 |
+| EnerAndes | Energía vacía / negativa | Pasar a cuarentena | 25 → 0 / 18 → 0 |
+| XM | Filas en formato ancho (24 columnas por hora) | Pasar a una fila por fecha y hora | 2.008 → 0 |
+| XM | Plantas que generan pero no están en el catálogo | Agregarlas con tipo `DESCONOCIDO` | 10 → 0 |
+| IDEAM | Temperatura mínima de 0 °C (sensor en cero) | Pasar a cuarentena | 605 → 0 |
+| IDEAM | Más observaciones que minutos del día | Pasar a cuarentena | 111 → 0 |
+| NOAA | Trimestres móviles sin mes asignado | Asignar el mes central (DJF → enero) y la fase ENSO | 920 → 0 |
+| NASA POWER | Valor −999 (sin dato) tratado como número | Cambiarlo por vacío | 4 → 0 |
+
+**Cuarentena:** las 785 filas que no se pudieron corregir están en `data/silver/*_cuarentena.parquet` con la columna
+`motivo_cuarentena` (energía vacía o negativa en EnerAndes; lluvia imposible, sensores en cero o datos repetidos en el IDEAM).
+El detalle por fuente está al final de cada tabla del reporte.
+
+**Validación con pandera:** cada tabla de plata tiene su esquema en `src/quality/` (`esquemas.py`, `esquemas_xm.py`,
+`esquemas_ideam.py`) con reglas de **tipo**, **rangos** (por ejemplo, volumen útil entre 0 y 100 %, temperatura entre 2 y 42 °C),
+**valores aceptados** (Bolsa / Contrato, El Niño / La Niña / Neutral) y **llaves únicas** (una venta por mes, municipio,
+segmento y tipo; una fila por fecha y hora en XM).
+
+### Perfilamiento de la capa bronce (EA1)
+
+[`docs/perfilamiento.md`](docs/perfilamiento.md) tiene una tabla por cada archivo de bronce con filas, columnas, tipos de datos, % de nulos por columna, filas duplicadas y rango de fechas, y al final **6 hallazgos de calidad** con su evidencia numérica. Algunos ejemplos:
+
+- El IDEAM publica con rezago: los datos llegan solo hasta el 24 de julio de 2026 (68 días menos de lo pedido).
+- Cada hoja de EnerAndes trae filas duplicadas (32 por año en 2023 a 2025 y 24 en 2026).
+- En la generación por planta de XM, cerca del 52 % de las horas nocturnas vienen vacías, frente a menos del 7 % al mediodía.
+
+## 🥇 Capa oro: modelo dimensional
+
+Esquema estrella construido con **dbt** sobre **DuckDB**: 6 tablas de hechos que comparten 6 dimensiones. El diagrama
+completo con todas las columnas, el grano de cada hecho y las dimensiones están en
+[`docs/modelo_dimensional.md`](docs/modelo_dimensional.md), y cada columna está explicada en
+[`docs/diccionario_datos.md`](docs/diccionario_datos.md).
+
+```mermaid
+erDiagram
+    dim_fecha ||--o{ fact_ventas_mensual : fecha_id
+    dim_municipio ||--o{ fact_ventas_mensual : municipio_id
+    dim_segmento ||--o{ fact_ventas_mensual : segmento_id
+    dim_fecha ||--o{ fact_mercado_horario : fecha_id
+    dim_hora ||--o{ fact_mercado_horario : hora
+    dim_fecha ||--o{ fact_generacion_recurso : fecha_id
+    dim_hora ||--o{ fact_generacion_recurso : hora
+    dim_recurso ||--o{ fact_generacion_recurso : recurso_id
+    dim_fecha ||--o{ fact_hidrologia_diaria : fecha_id
+    dim_fecha ||--o{ fact_clima_diario : fecha_id
+    dim_estacion ||--o{ fact_clima_diario : estacion_id
+    dim_municipio ||--o{ dim_estacion : municipio_id
+    dim_fecha ||--o{ fact_clima_satelital : fecha_id
+```
+
+| Hecho | Grano (una fila es…) | Filas |
+|---|---|---:|
+| `fact_ventas_mensual` | un mes, un municipio, un segmento y un tipo de compra | 4.007 |
+| `fact_mercado_horario` | una fecha y una hora (precio de bolsa y demanda) | 24.096 |
+| `fact_generacion_recurso` | una fecha, una hora y una planta | 5.935.362 |
+| `fact_hidrologia_diaria` | una fecha (volumen útil y aportes) | 1.004 |
+| `fact_clima_diario` | una fecha y una estación del IDEAM | 30.200 |
+| `fact_clima_satelital` | una fecha y un punto de NASA POWER | 4.016 |
+
+Dimensiones: `dim_fecha` (un día, con mes, trimestre, día de la semana y **fase ENSO**), `dim_hora` (franja Pico / Media /
+Valle), `dim_municipio` (DIVIPOLA), `dim_segmento`, `dim_recurso` (plantas, desde `ListadoRecursos`) y `dim_estacion`.
+
+**Pruebas de dbt (76):** `unique` y `not_null` en las llaves de las dimensiones, `relationships` en todas las llaves de los
+hechos, `accepted_values` en las categorías y 4 pruebas propias del **grano** en `dbt/tests/`.
+
+## 📊 Resultados de las consultas (capa oro)
+
+_(Pendiente: consultas de negocio en `consultas/oro/` con sus resultados.)_
+
+## 📂 Estructura del repositorio
+
+```
+├── src/
+│   ├── config.py           # fechas, URLs, métricas y rutas (todo lo configurable)
+│   ├── utils.py            # log, HTTP con reintentos, ventanas, idempotencia, guardar en bronce
+│   ├── pipeline.py         # BRONCE: python -m src.pipeline
+│   ├── extract/            # un extractor por fuente: xm, ideam, noaa, enerandes, nasa_power
+│   ├── transformar.py      # PLATA + ORO: python -m src.transformar
+│   ├── silver/             # una limpieza por fuente + comun.py (medir, cuarentena, guardar) + reporte.py
+│   ├── quality/            # esquemas de pandera de cada tabla de plata
+│   ├── muestras.py         # genera data/sample/
+│   ├── perfilamiento.py    # genera docs/perfilamiento.md
+│   └── consultar.py        # consultas SQL con DuckDB
+├── dbt/
+│   ├── dbt_project.yml     # proyecto dbt (rango de fechas en vars)
+│   ├── profiles.yml        # conexión: data/observatorio.duckdb
+│   ├── models/staging/     # lee cada tabla de la capa plata
+│   ├── models/marts/       # dimensiones, hechos y schema.yml (grano, descripciones y pruebas)
+│   └── tests/              # pruebas del grano de los hechos
+├── tests/                  # pruebas con pytest (bronce y plata)
+├── data/
+│   ├── insumos/            # Excel interno de EnerAndes
+│   ├── bronze/ silver/     # capas bronce y plata (NO se suben a GitHub)
+│   └── sample/             # 200 filas de cada archivo de bronce, en CSV
+├── consultas/              # SQL de ejemplo (EA1) y consultas/oro/ (EA2)
+└── docs/
+    ├── perfilamiento.md        # perfil de bronce + hallazgos (EA1)
+    ├── reporte_calidad.md      # reglas de plata con su antes y después (EA2, generado)
+    ├── modelo_dimensional.md   # diagrama y grano del esquema estrella (EA2)
+    ├── diccionario_datos.md    # columnas de cada tabla de oro (EA2)
+    └── bitacoras/              # una bitácora por integrante
+```
+
+## 🧪 Pruebas automáticas
+
+`python -m pytest` ejecuta **25 pruebas** con datos de ejemplo pequeños escritos en cada prueba:
+
+| Archivo | Qué comprueba | Entrega |
+|---|---|---|
+| `test_ventanas.py` | Que `ventanas()` parta bien un rango de fechas (incluido el año bisiesto), sin huecos ni días repetidos | EA1 |
+| `test_aplanar.py` | Que `aplanar()` convierta bien el JSON de XM por hora, por día y de listas | EA1 |
+| `test_idempotencia.py` | Que `ya_existe()` omita los archivos que ya están y los descargue de nuevo con `--forzar` | EA1 |
+| `test_limpieza.py` | Las reglas de la clase: tildes, alias de municipios, totales, duplicados, cuarentena y pandera | EA2 (clase) |
+| `test_noaa.py` | Umbrales de la fase ENSO, trimestre móvil → mes central y que pandera rechace una fase inventada | EA2 |
+| `test_nasa_power.py` | Que el −999 de NASA quede vacío y que pase a una fila por punto y día | EA2 |
+| `test_reglas_plata.py` | Fechas en 4 formatos (`mar-24`, `03/2024`, `01/03/2026` = marzo), MWh a kWh y XM de 24 columnas a una fila por hora | EA2 |
+
+Además, `dbt build` corre **76 pruebas** sobre la capa oro (ver arriba).
+
+### 📸 Capturas de la consola (EA1: capa bronce)
 
 Pipeline completo desde un clon nuevo (la salida es larga, por eso va en tres partes):
 
@@ -112,54 +287,24 @@ Pruebas automáticas:
 
 ![Ejecución de pytest](docs/img/pytest.png)
 
-## 📂 Estructura del repositorio
-
-```
-├── src/
-│   ├── config.py           # fechas, URLs, métricas y rutas (todo lo configurable)
-│   ├── utils.py            # log, HTTP con reintentos, ventanas, idempotencia, guardar en bronce
-│   ├── pipeline.py         # punto de entrada: python -m src.pipeline
-│   ├── extract/            # un extractor por fuente: xm, ideam, noaa, enerandes, nasa_power
-│   ├── muestras.py         # genera data/sample/
-│   ├── perfilamiento.py    # genera docs/perfilamiento.md
-│   └── consultar.py        # consultas SQL con DuckDB
-├── tests/                  # pruebas con pytest
-├── data/
-│   ├── insumos/            # Excel interno de EnerAndes
-│   ├── bronze/             # capa bronce (NO se sube a GitHub, se regenera con el pipeline)
-│   └── sample/             # 200 filas de cada archivo de bronce, en CSV
-├── consultas/              # SQL de ejemplo para BI
-└── docs/
-    ├── perfilamiento.md    # perfil de cada archivo + hallazgos de calidad
-    └── bitacoras/          # una bitácora por integrante
-```
-
-## ✅ Perfilamiento y calidad
-
-[`docs/perfilamiento.md`](docs/perfilamiento.md) tiene una tabla por cada archivo de bronce con filas, columnas, tipos de datos, % de nulos por columna, filas duplicadas y rango de fechas, y al final **6 hallazgos de calidad** con su evidencia numérica. Algunos ejemplos:
-
-- El IDEAM publica con rezago: los datos llegan solo hasta el 24 de julio de 2026 (68 días menos de lo pedido).
-- Cada hoja de EnerAndes trae filas duplicadas (32 por año en 2023 a 2025 y 24 en 2026).
-- En la generación por planta de XM, cerca del 52 % de las horas nocturnas vienen vacías, frente a menos del 7 % al mediodía.
-
-## 🧪 Pruebas automáticas
-
-`python -m pytest` ejecuta **10 pruebas** en `tests/`:
-
-| Archivo | Qué comprueba |
-|---|---|
-| `test_ventanas.py` | Que `ventanas()` parta bien un rango de fechas (incluido el año bisiesto), sin huecos ni días repetidos |
-| `test_aplanar.py` | Que `aplanar()` convierta bien el JSON de XM por hora, por día y de listas, sin cambiar los valores |
-| `test_idempotencia.py` | Que `ya_existe()` omita los archivos que ya están y los descargue de nuevo con `--forzar` |
-
 ## 🤝 Trabajo colaborativo
 
 - La rama `main` está protegida: todo cambio entra por Pull Request aprobado por otro integrante.
-- Una rama por tarea (`feature/extract-xm`, `test/pruebas-unitarias`, `docs/fuente-propia`…) y commits con prefijos `feat:`, `fix:`, `test:`, `docs:`.
+- Una rama por tarea (`feature/plata-enerandes`, `feature/plata-noaa`, `test/reglas-plata`, `feature/oro-estrella`…) y commits con prefijos `feat:`, `fix:`, `test:`, `docs:`.
 - Tareas en el tablero de GitHub Projects, como issues asignados a cada integrante.
 - Bitácoras individuales en [`docs/bitacoras/`](docs/bitacoras/).
 
-## 🎥 Videos de sustentación (EA1)
+## 🎥 Videos de sustentación
+
+### EA2 – Calidad de datos y modelo dimensional (capas plata y oro)
+
+| Integrante | Video |
+|---|---|
+| Aleicer Vesga Rueda | _(pendiente)_ |
+| Jaider Morales | _(pendiente)_ |
+| Guillermo León Loaiza | _(pendiente)_ |
+
+### EA1 – Extracción (capa bronce)
 
 | Integrante | Video |
 |---|---|
@@ -169,10 +314,10 @@ Pruebas automáticas:
 
 ## 🤖 Uso de IA
 
-El equipo usó **Claude (Anthropic)** como asistente durante la EA1, para:
+El equipo usó **Claude (Anthropic)** como asistente durante la EA1 y la EA2, para:
 
-- Planear la entrega y repartir las tareas del equipo, y preparar guías de trabajo para cada integrante.
-- Proponer y revisar código: la ampliación de los extractores de XM e IDEAM, los scripts de muestras y perfilamiento, y ejemplos de pruebas con pytest.
-- Explicar errores durante la ejecución (por ejemplo, la diferencia entre ejecutar un archivo y ejecutarlo como módulo con `python -m`).
+- Planear cada entrega, repartir las tareas del equipo y preparar guías de trabajo para cada integrante.
+- Proponer y revisar código: los extractores (EA1); las limpiezas de la capa plata, los esquemas de pandera, el comando `src.transformar` y el modelo dbt (EA2); y ejemplos de pruebas con pytest.
+- Revisar el estado de las ramas y los Pull Requests, y explicar errores durante la ejecución.
 
-Todo el código se ejecutó y revisó por el equipo antes de cada Pull Request. Los datos, los resultados y los hallazgos salen de la ejecución real del pipeline, y cada integrante explica en su video la parte que construyó.
+Todo el código se ejecutó y revisó por el equipo antes de cada Pull Request. Los datos, las métricas de calidad y los resultados salen de la ejecución real del pipeline, y cada integrante explica en su video la parte que construyó.
