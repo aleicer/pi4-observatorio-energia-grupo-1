@@ -1,6 +1,6 @@
 # Reporte de calidad de la capa plata
 
-> Generado con `python -m src.transformar` el 2026-11-03 07:18. No se edita a mano: se reemplaza cada vez que se construye la capa plata.
+> Generado con `python -m src.transformar` el 2026-11-04 07:07. No se edita a mano: se reemplaza cada vez que se construye la capa plata.
 
 ## Resumen
 
