@@ -28,5 +28,6 @@
 - **Commits de la Parte B:**
   - Programa de consultas: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/94c8d12
   - Cuatro consultas SQL: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/e91f3d8
+  - Resultados y documentación: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/8182faf
 - **Pull Request de NASA POWER:** https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/13
-- **Pull Request de consultas:** Pendiente de crear.
+- **Pull Request de consultas:** https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/21
