@@ -215,7 +215,65 @@ hechos, `accepted_values` en las categorías y 4 pruebas propias del **grano** e
 
 ## 📊 Resultados de las consultas (capa oro)
 
-_(Pendiente: consultas de negocio en `consultas/oro/` con sus resultados.)_
+Las consultas se ejecutan con `python -m src.consultar_oro`. El resultado completo también está disponible en [`docs/resultados_consultas.md`](docs/resultados_consultas.md).
+
+### 1. ¿Cómo cambia el precio de bolsa según la fase de El Niño?
+
+| Año | Fase ENSO | Días | Precio promedio COP/kWh | Precio máximo COP/kWh |
+|---:|---|---:|---:|---:|
+| 2024 | El Niño | 121 | 624.6 | 1267.6 |
+| 2024 | Neutral | 245 | 701.5 | 2675.6 |
+| 2025 | La Niña | 92 | 222.8 | 1079.2 |
+| 2025 | Neutral | 273 | 246.1 | 2224.0 |
+| 2026 | El Niño | 153 | 693.4 | 1846.7 |
+| 2026 | Neutral | 120 | 208.0 | 1175.4 |
+
+En 2026, el precio promedio durante El Niño fue de 693,4 COP/kWh, frente a 208,0 COP/kWh en la fase Neutral. Sin embargo, en 2024 el promedio Neutral fue mayor que el de El Niño, por lo que la fase ENSO influye, pero no explica por sí sola el comportamiento del precio.
+
+### 2. ¿Qué proporción de la energía viene de cada tipo de planta, por año?
+
+| Año | Tipo | Generación TWh | Porcentaje |
+|---:|---|---:|---:|
+| 2024 | HIDRAULICA | 54.49 | 65.4 |
+| 2024 | TERMICA | 24.44 | 29.4 |
+| 2024 | SOLAR | 3.30 | 4.0 |
+| 2024 | COGENERADOR | 0.84 | 1.0 |
+| 2024 | EOLICA | 0.15 | 0.2 |
+| 2024 | DESCONOCIDO | 0.05 | 0.1 |
+| 2025 | HIDRAULICA | 68.10 | 80.7 |
+| 2025 | TERMICA | 10.81 | 12.8 |
+| 2025 | SOLAR | 4.47 | 5.3 |
+| 2025 | COGENERADOR | 0.85 | 1.0 |
+| 2025 | EOLICA | 0.15 | 0.2 |
+| 2025 | DESCONOCIDO | 0.02 | 0.0 |
+| 2026 | HIDRAULICA | 47.53 | 71.5 |
+| 2026 | TERMICA | 12.94 | 19.5 |
+| 2026 | SOLAR | 5.23 | 7.9 |
+| 2026 | COGENERADOR | 0.65 | 1.0 |
+| 2026 | EOLICA | 0.16 | 0.2 |
+| 2026 | DESCONOCIDO | 0.00 | 0.0 |
+
+La generación hidráulica fue la principal fuente en los tres años. La participación solar aumentó del 4,0 % en 2024 al 7,9 % en 2026. Los valores absolutos de 2026 deben interpretarse considerando que los datos llegan hasta septiembre.
+
+### 3. ¿Cuánto le habría costado a EnerAndes comprar en bolsa la energía de cada año?
+
+| Año | Energía GWh | Costo en bolsa, mil millones COP |
+|---:|---:|---:|
+| 2024 | 736.6 | 493.2 |
+| 2025 | 770.6 | 183.6 |
+| 2026 | 595.3 | 287.8 |
+
+Aunque 2025 tuvo la mayor cantidad de energía, presentó el menor costo hipotético debido a los menores precios de bolsa. El costo más alto se obtuvo en 2024, con 493,2 mil millones de pesos.
+
+### 4. ¿Sube la radiación y la generación solar durante El Niño?
+
+| Fase ENSO | Radiación promedio kWh/m² | Generación solar GWh/mes |
+|---|---:|---:|
+| El Niño | 6.05 | 450.7 |
+| Neutral | 5.67 | 365.8 |
+| La Niña | 4.93 | 420.4 |
+
+El Niño presentó la mayor radiación promedio y la mayor generación solar mensual. No obstante, La Niña tuvo más generación solar que la fase Neutral, por lo que la relación no es completamente lineal y también intervienen factores como la capacidad instalada y la disponibilidad de las plantas.
 
 ## 📂 Estructura del repositorio
 

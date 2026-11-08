@@ -15,14 +15,18 @@
 
 ## Semanas 3 y 4 (26 de octubre - 8 de noviembre de 2026)
 
-- **Rol:** BI Analyst
-- **Qué hice:** Construí el esquema de Pandera y la limpieza de NASA POWER para la capa plata. Cambié los valores `-999` por datos vacíos, convertí las fechas que venían en formato `AAAAMMDD`, eliminé mediciones repetidas y transformé la tabla del formato largo al formato ancho. También agregué una prueba automática y documenté en el README cómo ejecutar la transformación.
-- **Resultados verificados:** La limpieza transformó 12.048 filas de bronce en 4.016 filas limpias, con 0 filas en cuarentena. Los 4 valores `-999` se redujeron a 0 y las 17 pruebas automáticas terminaron correctamente.
-- **Qué aprendí:** Comprendí que `-999` representa la ausencia de una medición y no debe participar en promedios. También aprendí que `pivot` permite convertir las variables que ocupan filas separadas en columnas de una misma fecha y punto. Pandera comprueba los tipos, rangos y duplicados antes de guardar la capa plata.
-- **Bloqueos y cómo los resolví:** Encontré archivos locales incompletos en la limpieza y en la prueba de NASA POWER. Corregí la sintaxis, completé la prueba y generé el archivo de bronce de EnerAndes que faltaba. Al actualizar mi rama con `main` apareció un conflicto en `src/quality/esquemas.py`; lo resolví conservando tanto `ESQUEMA_NASA` como `ESQUEMA_NOAA`.
-- **Horas dedicadas:** 8 horas.
-- **Commits:**
+- **Rol:** BI Analyst.
+- **Qué hice:** Construí el esquema de Pandera y la limpieza de NASA POWER para la capa plata. Cambié los valores `-999` por datos vacíos, convertí las fechas `AAAAMMDD`, eliminé mediciones repetidas y transformé la tabla del formato largo al ancho. También desarrollé `src/consultar_oro.py`, cuatro consultas SQL sobre el esquema estrella y la documentación de sus resultados en el README.
+- **Resultados verificados:** NASA POWER pasó de 12.048 filas de bronce a 4.016 filas limpias, con 0 filas en cuarentena y los 4 valores `-999` reducidos a 0. La transformación completa terminó con 63 reglas de calidad, dbt finalizó con `PASS=76` y `ERROR=0`, y las 25 pruebas de pytest fueron aprobadas. Las cuatro consultas generaron correctamente sus resultados en `docs/resultados_consultas.md`.
+- **Qué aprendí:** Comprendí que `-999` representa ausencia de medición y no debe incluirse en promedios. Aprendí a utilizar `pivot` para convertir variables almacenadas en filas en columnas, validar datos con Pandera y consultar un esquema estrella en DuckDB. También aprendí a relacionar tablas de hechos con dimensiones para analizar precios, generación, ventas y clima.
+- **Bloqueos y cómo los resolví:** Encontré archivos locales incompletos en la limpieza y la prueba de NASA POWER, que corregí antes de ejecutar las validaciones. Al actualizar la rama apareció un conflicto en `src/quality/esquemas.py`; conservé tanto `ESQUEMA_NASA` como `ESQUEMA_NOAA`. Para construir la capa oro faltaban los archivos bronce del IDEAM, por lo que ejecuté nuevamente el pipeline y aproveché su comportamiento idempotente. Finalmente, verifiqué los nombres reales de las tablas y columnas en el modelo dbt antes de escribir las consultas.
+- **Horas dedicadas:** 13 horas aproximadamente: 8 horas en la limpieza de NASA POWER y 5 horas en las consultas y su documentación.
+- **Commits de la Parte A:**
   - Esquema de Pandera: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/d3d12ba5852def7057c40abbec3c5714cf0d74cb
   - Limpieza y prueba: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/579f2e8
-  - Actualización con `main`: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/901272c
-- **Pull Request:** Pendiente de crear.
+  - Bitácora de la limpieza: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/e3facee
+- **Commits de la Parte B:**
+  - Programa de consultas: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/94c8d12
+  - Cuatro consultas SQL: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/e91f3d8
+- **Pull Request de NASA POWER:** https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/13
+- **Pull Request de consultas:** Pendiente de crear.
