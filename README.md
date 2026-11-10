@@ -354,15 +354,7 @@ Pruebas automáticas:
 
 ## 🎥 Videos de sustentación
 
-### EA2 – Calidad de datos y modelo dimensional (capas plata y oro)
-
-| Integrante | Video |
-|---|---|
-| Aleicer Vesga Rueda | _(pendiente)_ |
-| Jaider Morales | _(pendiente)_ |
-| Guillermo León Loaiza | _(pendiente)_ |
-
-### EA1 – Extracción (capa bronce)
+La EA2 no pide video de sustentación. Estos son los videos de la EA1:
 
 | Integrante | Video |
 |---|---|
@@ -378,4 +370,4 @@ El equipo usó **Claude (Anthropic)** como asistente durante la EA1 y la EA2, pa
 - Proponer y revisar código: los extractores (EA1); las limpiezas de la capa plata, los esquemas de pandera, el comando `src.transformar` y el modelo dbt (EA2); y ejemplos de pruebas con pytest.
 - Revisar el estado de las ramas y los Pull Requests, y explicar errores durante la ejecución.
 
-Todo el código se ejecutó y revisó por el equipo antes de cada Pull Request. Los datos, las métricas de calidad y los resultados salen de la ejecución real del pipeline, y cada integrante explica en su video la parte que construyó.
+Todo el código se ejecutó y revisó por el equipo antes de cada Pull Request, y cada integrante entiende y puede explicar la parte que construyó. Los datos, las métricas de calidad y los resultados salen de la ejecución real del pipeline.
