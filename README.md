@@ -6,20 +6,44 @@
 > |---|---|---|
 > | **EA1** – Extracción de datos de fuentes reales con Python | Capa **bronce**: 5 fuentes tal como llegan | `ea1` |
 > | **EA2** – Calidad de datos y modelo dimensional | Capa **plata** (limpieza + pandera) y capa **oro** (esquema estrella con dbt) | `ea2` |
+> | **EA3** – Entrega final | Pipeline automático en **GitHub Actions**, **dashboard** e **informe de hallazgos** | `final` |
 
 ## 👥 Integrantes
 
-| Nombre | Usuario GitHub | Rol | EA1 | EA2 |
-|---|---|---|---|---|
-| Aleicer Vesga Rueda | [@aleicer](https://github.com/aleicer) | Líder técnico / Data Engineer y Analytics Engineer | Extracción ampliada de XM e IDEAM, muestras, perfilamiento, README | Base de plata y oro, limpieza de EnerAndes (4 hojas), XM e IDEAM, comando `src.transformar`, modelo dbt completo, modelo dimensional, README |
-| Jaider Morales | [@JaiderMoraless](https://github.com/JaiderMoraless) | Data Quality Analyst | Pruebas con pytest y hallazgos del perfilamiento | Limpieza de NOAA (ONI mensual y fase ENSO), 8 pruebas nuevas con pytest, diccionario de datos |
-| Guillermo León Loaiza | [@memo-iud](https://github.com/memo-iud) | BI Analyst / Storyteller | Fuente propia NASA POWER | Limpieza de NASA POWER, consultas de negocio sobre la capa oro |
+Los roles rotaron al iniciar la EA3 (9 de noviembre): cada integrante asumió un rol distinto al de las EA1 y EA2.
 
-Como el equipo tiene 3 integrantes y el reto define 4 roles, Aleicer asume también el de Analytics Engineer.
+| Nombre | Usuario GitHub | Rol (S1–S4: EA1 y EA2) | Rol (S5–S7: EA3) |
+|---|---|---|---|
+| Aleicer Vesga Rueda | [@aleicer](https://github.com/aleicer) | Líder técnico / Data Engineer y Analytics Engineer | BI Analyst / Storyteller y Data Quality Analyst (pruebas de los KPIs) |
+| Jaider Morales | [@JaiderMoraless](https://github.com/JaiderMoraless) | Data Quality Analyst | Data Engineer |
+| Guillermo León Loaiza | [@memo-iud](https://github.com/memo-iud) | BI Analyst / Storyteller | Analytics Engineer |
+
+Como el equipo tiene 3 integrantes y el reto define 4 roles, en cada etapa un integrante asumió dos: Aleicer el de Analytics Engineer en las EA1 y EA2, y el de Data Quality Analyst en la EA3.
+
+**Qué construyó cada uno**
+
+| Nombre | EA1 | EA2 | EA3 |
+|---|---|---|---|
+| Aleicer | Extracción ampliada de XM e IDEAM, muestras, perfilamiento, README | Base de plata y oro, limpieza de EnerAndes (4 hojas), XM e IDEAM, comando `src.transformar`, modelo dbt completo, modelo dimensional, README | Dashboard en Streamlit, pruebas de los KPIs, informe de hallazgos, README final |
+| Jaider | Pruebas con pytest y hallazgos del perfilamiento | Limpieza de NOAA (ONI mensual y fase ENSO), 8 pruebas nuevas con pytest, diccionario de datos | Workflow de GitHub Actions, exportación de la capa oro, historia de XM desde 2015 y precio de contratos |
+| Guillermo | Fuente propia NASA POWER | Limpieza de NASA POWER, consultas de negocio sobre la capa oro | Modelos de dbt para el dashboard (precio de contratos y 4 tablas resumidas) |
 
 ## 🎯 Objetivo
 
 Construir el **Observatorio de Energía y Clima** para la comercializadora EnerAndes: integrar datos del mercado eléctrico (XM), del clima (IDEAM y NASA POWER), del fenómeno de El Niño (NOAA) y de las ventas internas (Excel de EnerAndes), dejarlos **limpios y confiables** y organizarlos en un **esquema estrella** listo para el dashboard, para analizar el riesgo de precios altos y desabastecimiento ante El Niño 2026.
+
+## ❓ Preguntas de negocio que responde el dashboard
+
+Las 6 preguntas de la sección 3 del reto, con la tabla de la capa oro que responde cada una:
+
+| # | Pregunta | Tabla de la capa oro |
+|---|---|---|
+| 1 | **Riesgo hídrico:** ¿cómo ha evolucionado el volumen útil de los embalses y en qué se parece la situación actual a El Niño 2015-2016 y 2023-2024? | `mart_hidroclima_mensual` |
+| 2 | **Clima → precio:** ¿qué relación hay entre el ONI, la lluvia en las cuencas y el precio de bolsa? ¿Con cuántos meses de rezago se nota el efecto? | `mart_hidroclima_mensual` |
+| 3 | **Matriz de generación:** ¿qué proporción viene de fuente hidráulica, térmica, solar y eólica, y cómo cambia en épocas secas? | `mart_generacion_tipo_diaria` |
+| 4 | **Demanda:** ¿cuáles son los patrones de demanda por hora, día de la semana y mes? ¿Cuál es la hora pico? | `mart_mercado_horario` |
+| 5 | **Impacto en el negocio:** ¿cuánto le habría costado a EnerAndes comprar en bolsa en lugar de por contrato en cada mes? ¿Qué municipios o segmentos concentran el riesgo? | `mart_ventas_costo_mensual` |
+| 6 | **Pregunta propia:** durante El Niño, ¿cuánto aumentó la radiación solar y cuánto compensó la generación solar la caída de la hidráulica? (XM + NASA POWER + NOAA) | `mart_generacion_tipo_diaria` y `mart_hidroclima_mensual` |
 
 ## 🏗️ Arquitectura
 
