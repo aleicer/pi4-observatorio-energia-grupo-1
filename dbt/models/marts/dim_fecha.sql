@@ -1,4 +1,4 @@
--- Dimension FECHA: un dia del calendario, del 1-ene-2023 al 30-sep-2026.
+-- Dimension FECHA: un dia del calendario, del 1-ene-2015 al 30-sep-2026.
 -- Grano: un dia. Llave: fecha_id (AAAAMMDD, por ejemplo 20260315).
 -- Trae la fase del fenomeno ENSO (El Nino / La Nina / Neutral) del mes, desde NOAA.
 
