@@ -81,7 +81,10 @@ def extraer_metrica(metrica: str, entidad: str, periodo: str, nombre: str, forza
         return                                     # ...termina aqui, sin descargar
     url = config.XM_URL.format(periodo=periodo)    # reemplaza {periodo} por hourly o daily
     filas = []                                     # aqui se juntan las filas de todas las ventanas
-    for inicio, fin in ventanas(config.FECHA_INICIO, config.FECHA_FIN, config.XM_MAX_DIAS):
+    # Las metricas del Sistema se consultan desde 2015.
+    # La generacion por recurso conserva la fecha inicial original.
+    desde = config.XM_HISTORIA_INICIO if entidad == "Sistema" else config.FECHA_INICIO
+    for inicio, fin in ventanas(desde, config.FECHA_FIN, config.XM_MAX_DIAS):
         # str(inicio) convierte la fecha en texto "2026-01-01", como la pide XM.
         cuerpo = {"MetricId": metrica, "Entity": entidad,
                   "StartDate": str(inicio), "EndDate": str(fin), "Filter": []}
