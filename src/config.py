@@ -16,6 +16,11 @@ from pathlib import Path    # pathlib: libreria de Python para manejar rutas de
 FECHA_INICIO = date(2024, 1, 1)     # primer dia que se descarga
 FECHA_FIN = date(2026, 9, 30)       # ultimo dia que se descarga
 
+# EA3: datos historicos de XM desde 2015.
+# Las metricas del Sistema se consultan desde esta fecha.
+# La generacion por recurso conserva FECHA_INICIO.
+XM_HISTORIA_INICIO = date(2015, 1, 1)
+
 # --- Rutas (relativas a la raiz del proyecto) ------------------------------
 # __file__ es la ruta de ESTE archivo (src/config.py).
 # .resolve() la vuelve ruta completa; .parent sube una carpeta.
@@ -33,6 +38,7 @@ XM_METRICAS = [
     # Lista de tuplas. Cada tupla es una metrica a descargar:
     # (MetricId, Entity, periodo, nombre del archivo en bronce)
     # periodo: "hourly" (por hora), "daily" (por dia) o "lists" (catalogo, sin fechas)
+    ("PrecPromCont", "Sistema", "daily", "xm_precio_contratos"),
     ("PrecBolsNaci", "Sistema", "hourly", "xm_precio_bolsa"),       # precio de bolsa por hora
     ("DemaReal", "Sistema", "hourly", "xm_demanda"),                # demanda real por hora
     ("Gene", "Recurso", "hourly", "xm_generacion_recurso"),         # generacion por hora de CADA planta

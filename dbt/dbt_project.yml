@@ -15,9 +15,9 @@ model-paths: ["models"]
 test-paths: ["tests"]
 
 # Variables del proyecto: el rango de dias de dim_fecha.
-# Cubre todas las fuentes: ventas desde 2023 y XM, IDEAM y NASA hasta sep-2026
+# Calendario desde 2015 para XM; incluye ventas desde 2023 y las demas fuentes.
 vars:
-  fecha_inicio: "2023-01-01"
+  fecha_inicio: "2015-01-01"
   fecha_fin: "2026-09-30"
 
 # Como se crea cada grupo de modelos

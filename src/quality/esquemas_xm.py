@@ -43,6 +43,19 @@ ESQUEMA_XM_HIDROLOGIA = pa.DataFrameSchema(
     strict=True,
 )
 
+# EA3: precio promedio diario de contratos de energia de XM.
+# La unidad es COP/kWh.
+ESQUEMA_XM_CONTRATOS = pa.DataFrameSchema(
+    {
+        "fecha": Column(pa.Date, unique=True),
+        "precio_contrato_cop_kwh": Column(
+            float,
+            Check.in_range(0, 2000, include_min=False),
+        ),
+    },
+    strict=True,
+)
+
 ESQUEMA_XM_RECURSOS = pa.DataFrameSchema(
     {
         "recurso_id": Column(str, unique=True),
