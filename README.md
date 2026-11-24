@@ -1,5 +1,7 @@
 # Observatorio Energía y Clima – Grupo 1
 
+[![Pipeline Observatorio](https://github.com/aleicer/pi4-observatorio-energia-grupo-1/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/aleicer/pi4-observatorio-energia-grupo-1/actions/workflows/pipeline.yml)
+
 > Proyecto Integrado IV – Integración de Información · IU Digital de Antioquia · 2026-2
 >
 > | Entrega | Qué construye | Tag |
