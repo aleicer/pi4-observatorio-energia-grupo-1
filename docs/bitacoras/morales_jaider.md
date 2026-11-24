@@ -205,3 +205,110 @@ Los Pull Requests #10, #14, #15, #16 y #18 fueron fusionados.
 Para cerrar la documentación de mi entrega queda incorporar el enlace del video de sustentación de la EA2 y verificar el archivo ZIP y las demás evidencias solicitadas por la guía.
 
 **Horas dedicadas:** 8 horas.
+
+## Semanas 5 y 6 (9 – 22 de noviembre de 2026)
+
+**Rol:** Data Engineer.
+
+### 1. Actividades realizadas
+
+Durante la EA3 asumí el rol de Data Engineer, con el objetivo de automatizar el procesamiento de las fuentes de información del Observatorio de Energía y Clima y ampliar la cobertura histórica de XM.
+
+**Automatización del pipeline mediante GitHub Actions**
+
+Implementé el archivo `.github/workflows/pipeline.yml` para ejecutar automáticamente la extracción de las cinco fuentes, la limpieza y validación de la capa plata, la construcción de la capa oro mediante dbt y las pruebas automatizadas con pytest.
+
+Configuré la ejecución diaria, la ejecución manual y la validación de los Pull Requests dirigidos a `main`.
+
+También incorporé mecanismos de caché para reutilizar los archivos de la capa bronce cuando corresponde, evitando descargar innecesariamente información.
+
+**Exportación de la capa oro**
+
+Desarrollé `src/exportar_oro.py`, encargado de exportar las doce tablas del modelo dimensional a archivos Parquet.
+
+Configuré GitHub Actions para publicar los resultados de la capa oro y el reporte de calidad como artefactos descargables.
+
+Agregué dos pruebas automatizadas para verificar la exportación y la generación del resumen de resultados.
+
+Estos cambios se incorporaron al repositorio mediante el Pull Request #24, aprobado y fusionado.
+
+**Ampliación histórica de XM desde 2015**
+
+Modifiqué `src/config.py` y `src/extract/xm.py` para que las métricas del Sistema de XM se consulten desde el 1 de enero de 2015 hasta el 30 de septiembre de 2026.
+
+Conservé la fecha inicial de 2024 para la generación por recurso, evitando ampliar innecesariamente una fuente de gran volumen.
+
+La nueva extracción permitió obtener 4.291 registros diarios para precio de bolsa, demanda, embalses y aportes hídricos. En las cuatro métricas comprobé que no existieran días faltantes ni fechas duplicadas.
+
+**Incorporación del precio promedio de contratos**
+
+Agregué la métrica `PrecPromCont` de XM, correspondiente al precio promedio diario de contratos de energía.
+
+Implementé su transformación en `src/silver/xm.py` y su esquema de validación en `src/quality/esquemas_xm.py`.
+
+La función de limpieza convierte las fechas y precios, elimina duplicados y separa los registros con valores inválidos para su cuarentena.
+
+Se obtuvieron 4.204 registros válidos, que superaron las validaciones de Pandera sin generar registros en cuarentena.
+
+**Ampliación del calendario y pruebas**
+
+Actualicé `dbt/dbt_project.yml` y la documentación de `dim_fecha.sql` para ampliar el calendario desde 2015.
+
+También creé `tests/test_historia_xm.py`, con tres pruebas que verifican el inicio histórico de las consultas del Sistema, la conservación del periodo de generación por recurso y la limpieza de los precios de contratos.
+
+Al finalizar, ejecuté las pruebas generales y obtuve:
+
+- 30 pruebas de Python aprobadas.
+- 76 operaciones de dbt exitosas, incluidas 54 pruebas de calidad.
+- Validación satisfactoria de las cinco tablas de XM mediante Pandera.
+
+### 2. Dificultades y soluciones
+
+Una de las principales dificultades fue que los archivos de la capa bronce conservaban datos correspondientes a periodos anteriores, por lo que el extractor omitía descargarlos nuevamente.
+
+Para solucionarlo realicé un respaldo de los archivos originales y repetí únicamente las extracciones necesarias. Así conseguí ampliar la cobertura histórica sin eliminar los datos de la EA2.
+
+También identifiqué que XM devolvió 4.204 registros de precio de contratos para un periodo de 4.291 días. Los 87 días faltantes se concentran en 2026. Conservé los datos disponibles sin inventar ni interpolar valores.
+
+Durante la modificación de dbt detecté que se había eliminado accidentalmente la clave `vars:` del archivo YAML. Restauré la estructura, validé la configuración y comprobé que el calendario pudiera construirse correctamente.
+
+Otra dificultad fue haber creado inicialmente el archivo de pruebas en `dbt/tests` en lugar de la carpeta `tests` de Python. Después de moverlo, las tres pruebas nuevas se ejecutaron satisfactoriamente.
+
+### 3. Aprendizajes
+
+Aprendí a configurar pipelines de integración continua con GitHub Actions, publicar artefactos de datos, aprovechar mecanismos de caché y utilizar pruebas automatizadas para verificar cambios antes de integrarlos.
+
+También comprendí mejor la importancia de la cobertura histórica, el tratamiento de datos faltantes y la separación entre las capas bronce, plata y oro.
+
+### 4. Trabajo colaborativo
+
+El Pull Request #24 incorporó la automatización del pipeline y la exportación de la capa oro.
+
+El Pull Request #25 incorporó la historia de XM desde 2015, el precio promedio de contratos, las reglas de calidad y las tres pruebas adicionales. Fue aprobado por Guillermo (`memo-iud`) y fusionado con `main` el 21 de noviembre de 2026.
+
+### 5. Evidencias
+
+**Repositorio:**
+
+https://github.com/aleicer/pi4-observatorio-energia-grupo-1
+
+**Pull Requests:**
+
+- PR #24 — Automatización y exportación: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/24
+- PR #25 — Historia de XM y precio de contratos: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/25
+
+**Commits de la ampliación histórica:**
+
+- Extracción histórica: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/645d9f3
+- Limpieza de contratos: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/80a8aac
+- Calendario y pruebas: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/commit/c7dfaa8
+
+**GitHub Actions:**
+
+- Ejecución exitosa #4: https://github.com/aleicer/pi4-observatorio-energia-grupo-1/actions/runs/44858595895
+
+**Horas dedicadas:** Pendiente de registrar el tiempo real de trabajo.
+
+### 6. Actividades pendientes para cerrar la EA3
+
+Completar las evidencias de las ejecuciones exitosas del pipeline, incorporar la documentación final y la insignia de GitHub Actions, preparar el video de sustentación individual y verificar el contenido del archivo ZIP de entrega.
