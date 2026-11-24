@@ -254,6 +254,22 @@ models:
       - name: aportes_kwh
         description: "Aportes hídricos en energía (kWh)."
 
+  - name: fact_precio_contrato_diario
+    description: "Grano: una fecha. Precio promedio de los contratos de energía de Colombia (XM, métrica PrecPromCont), 2015-2026. Se agregó en la EA3."
+    columns:
+      - name: fecha_id
+        description: "Día (AAAAMMDD)."
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha_id
+      - name: precio_contrato_cop_kwh
+        description: "Precio promedio de los contratos (COP/kWh)."
+        data_tests: [not_null]
+
   - name: fact_clima_diario
     description: "Grano: una fecha y una estación del IDEAM. Lluvia y temperatura medidas en Antioquia, 2025-2026."
     columns:

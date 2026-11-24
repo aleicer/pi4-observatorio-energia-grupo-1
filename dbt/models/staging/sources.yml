@@ -14,6 +14,7 @@ sources:
       - name: xm_generacion_recurso
       - name: xm_hidrologia_diaria
       - name: xm_recursos
+      - name: xm_precio_contratos          # EA3: precio promedio de contratos
       - name: ideam_precipitacion_diaria  # src/silver/ideam.py
       - name: ideam_temperatura_diaria
       - name: ideam_estaciones
