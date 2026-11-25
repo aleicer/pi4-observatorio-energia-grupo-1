@@ -22,7 +22,7 @@ vars:
 
 # Como se crea cada grupo de modelos
 models:
-  # Los modelos de este proyecto (el mismo name de arriba)
+    # Los modelos de este proyecto (el mismo name de arriba)
   observatorio:
     # Los de la carpeta models/staging/...
     staging:
@@ -31,4 +31,7 @@ models:
     # Los de la carpeta models/marts/...
     marts:
       # ...se crean como TABLAS reales dentro del archivo data/observatorio.duckdb
+      +materialized: table
+  # Los de la carpeta models/dashboard/ (EA3): tablas resumidas que lee el dashboard
+    dashboard:
       +materialized: table
