@@ -1,6 +1,6 @@
 # Reporte de calidad de la capa plata
 
-> Generado con `python -m src.transformar` el 2026-11-09 20:32. No se edita a mano: se reemplaza cada vez que se construye la capa plata.
+> Generado con `python -m src.transformar` el 2026-11-25 12:30. No se edita a mano: se reemplaza cada vez que se construye la capa plata.
 
 ## Resumen
 
@@ -11,13 +11,14 @@
 | IDEAM | `ideam_precipitacion_diaria` | 29,804 | 29,691 | 113 | 6 |
 | IDEAM | `ideam_temperatura_diaria` | 17,349 | 16,720 | 629 | 8 |
 | NASA POWER | `nasa_power_diario` | 12,048 | 4,016 | 0 | 4 |
-| NOAA | `noaa_oni_mensual` | 920 | 920 | 0 | 5 |
-| XM | `xm_generacion_recurso` | 350,345 | 5,935,362 | 0 | 4 |
-| XM | `xm_hidrologia_diaria` | 2,008 | 1,004 | 0 | 4 |
-| XM | `xm_mercado_horario` | 2,008 | 24,096 | 0 | 6 |
-| XM | `xm_recursos` | 2,493 | 2,501 | 0 | 4 |
+| NOAA | `noaa_oni_mensual` | 921 | 921 | 0 | 5 |
+| XM | `xm_generacion_recurso` | 350,361 | 5,935,449 | 0 | 4 |
+| XM | `xm_hidrologia_diaria` | 8,582 | 4,291 | 0 | 4 |
+| XM | `xm_mercado_horario` | 8,582 | 102,984 | 0 | 6 |
+| XM | `xm_precio_contratos` | 4,291 | 4,201 | 90 | 4 |
+| XM | `xm_recursos` | 2,523 | 2,530 | 0 | 4 |
 
-**Total: 63 reglas de calidad y 785 filas en cuarentena.**
+**Total: 67 reglas de calidad y 875 filas en cuarentena.**
 
 ## EnerAndes – `enerandes_ventas`
 
@@ -112,58 +113,73 @@ Filas en bronce: 12,048 · Filas en plata: 4,016 · Filas en cuarentena: 0
 
 ## NOAA – `noaa_oni_mensual`
 
-Filas en bronce: 920 · Filas en plata: 920 · Filas en cuarentena: 0
+Filas en bronce: 921 · Filas en plata: 921 · Filas en cuarentena: 0
 
 | # | Problema | Regla aplicada | Antes | Después |
 |---|---|---|---:|---:|
-| 1 | Numeros guardados como texto (YR, TOTAL, ANOM) | Convertir a numero | 920 | 0 |
+| 1 | Numeros guardados como texto (YR, TOTAL, ANOM) | Convertir a numero | 921 | 0 |
 | 2 | Filas sin ONI, sin anio o con trimestre desconocido | Pasar a cuarentena | 0 | 0 |
-| 3 | Trimestres moviles sin mes asignado | Asignar cada trimestre a su mes central | 920 | 0 |
+| 3 | Trimestres moviles sin mes asignado | Asignar cada trimestre a su mes central | 921 | 0 |
 | 4 | Meses repetidos despues de asignar | Verificar un solo valor por mes | 0 | 0 |
-| 5 | Meses sin fase ENSO | Clasificar El Niño, La Niña o Neutral | 920 | 0 |
+| 5 | Meses sin fase ENSO | Clasificar El Niño, La Niña o Neutral | 921 | 0 |
 
 ## XM – `xm_generacion_recurso`
 
-Filas en bronce: 350,345 · Filas en plata: 5,935,362 · Filas en cuarentena: 0
+Filas en bronce: 350,361 · Filas en plata: 5,935,449 · Filas en cuarentena: 0
 
 | # | Problema | Regla aplicada | Antes | Después |
 |---|---|---|---:|---:|
-| 1 | Filas en formato ancho: 24 columnas por hora (generación) | Pasar a una fila por fecha, hora y planta | 350,345 | 0 |
-| 2 | Horas sin generación reportada (celda vacía, p. ej. solares de noche) | No guardarlas: no son una medición | 2,472,918 | 0 |
-| 3 | Generación repetida (misma planta, fecha y hora) | Dejar una sola | 0 | 0 |
-| 4 | Generación negativa | Pasar a cuarentena | 0 | 0 |
+| 1 | Filas en formato ancho: 24 columnas por hora (generacion) | Pasar a una fila por fecha, hora y planta | 350,361 | 0 |
+| 2 | Horas sin generacion reportada | No guardarlas: no son una medicion | 2,473,215 | 0 |
+| 3 | Generacion repetida (misma planta, fecha y hora) | Dejar una sola | 0 | 0 |
+| 4 | Generacion negativa | Pasar a cuarentena | 0 | 0 |
 
 ## XM – `xm_hidrologia_diaria`
 
-Filas en bronce: 2,008 · Filas en plata: 1,004 · Filas en cuarentena: 0
+Filas en bronce: 8,582 · Filas en plata: 4,291 · Filas en cuarentena: 0
 
 | # | Problema | Regla aplicada | Antes | Después |
 |---|---|---|---:|---:|
-| 1 | Fecha y valores diarios guardados como texto | Convertir a fecha y a número | 2,008 | 0 |
-| 2 | Volumen útil como fracción (0,70) | Pasarlo a porcentaje (70 %) | 1,004 | 0 |
-| 3 | Días repetidos | Dejar uno solo | 0 | 0 |
-| 4 | Volumen útil fuera de 0-100 % o aportes negativos | Pasar a cuarentena | 0 | 0 |
+| 1 | Fecha y valores diarios guardados como texto | Convertir a fecha y numero | 8,582 | 0 |
+| 2 | Volumen util como fraccion (0,70) | Pasarlo a porcentaje (70 %) | 4,291 | 0 |
+| 3 | Dias repetidos | Dejar uno solo | 0 | 0 |
+| 4 | Volumen util fuera de 0-100 % o aportes negativos | Pasar a cuarentena | 0 | 0 |
 
 ## XM – `xm_mercado_horario`
 
-Filas en bronce: 2,008 · Filas en plata: 24,096 · Filas en cuarentena: 0
+Filas en bronce: 8,582 · Filas en plata: 102,984 · Filas en cuarentena: 0
 
 | # | Problema | Regla aplicada | Antes | Después |
 |---|---|---|---:|---:|
-| 1 | Filas en formato ancho: 24 columnas por hora (precio y demanda) | Pasar a una fila por fecha y hora | 2,008 | 0 |
-| 2 | Valores horarios guardados como texto | Convertirlos a número | 48,192 | 0 |
-| 3 | Horas con precio o demanda faltante | Dejar vacío (no se inventa) | 0 | 0 |
+| 1 | Filas en formato ancho: 24 columnas por hora (precio y demanda) | Pasar a una fila por fecha y hora | 8,582 | 0 |
+| 2 | Valores horarios guardados como texto | Convertirlos a numero | 205,968 | 0 |
+| 3 | Horas con precio o demanda faltante | Dejar vacio (no se inventa) | 0 | 0 |
 | 4 | Horas repetidas | Dejar una sola | 0 | 0 |
 | 5 | Precio o demanda cero o negativos | Pasar a cuarentena | 0 | 0 |
-| 6 | Días sin sus 24 horas | Verificar que cada día tenga 24 horas | 0 | 0 |
+| 6 | Dias sin sus 24 horas | Verificar que cada dia tenga 24 horas | 0 | 0 |
+
+## XM – `xm_precio_contratos`
+
+Filas en bronce: 4,291 · Filas en plata: 4,201 · Filas en cuarentena: 90
+
+| # | Problema | Regla aplicada | Antes | Después |
+|---|---|---|---:|---:|
+| 1 | Fecha y precio de contratos guardados como texto | Convertir a fecha y a numero | 4,291 | 0 |
+| 2 | Dias repetidos (precio de contratos) | Dejar uno solo | 0 | 0 |
+| 3 | Fecha invalida o precio fuera del rango permitido | Pasar a cuarentena | 0 | 0 |
+| 4 | Precio de contratos menor a 50 COP/kWh | Pasar a cuarentena (el mes usa el precio del ultimo mes con dato) | 90 | 0 |
+
+**Filas en cuarentena y por qué** (archivo `data/silver/xm_precio_contratos_cuarentena.parquet`):
+
+- Precio de contratos menor a 50 COP/kWh (no es un precio real): 90 filas
 
 ## XM – `xm_recursos`
 
-Filas en bronce: 2,493 · Filas en plata: 2,501 · Filas en cuarentena: 0
+Filas en bronce: 2,523 · Filas en plata: 2,530 · Filas en cuarentena: 0
 
 | # | Problema | Regla aplicada | Antes | Después |
 |---|---|---|---:|---:|
-| 1 | Tipo y estado escritos de varias formas ('Solar' / 'SOLAR') | Pasar a mayúsculas sin tildes | 9 | 7 |
-| 2 | Plantas repetidas en el catálogo | Dejar una sola | 2 | 0 |
-| 3 | Fecha de entrada en operación como texto | Convertir a fecha | 2,491 | 0 |
-| 4 | Plantas que generan pero no están en el catálogo | Agregarlas con tipo 'DESCONOCIDO' | 10 | 0 |
+| 1 | Tipo y estado escritos de varias formas | Pasar a mayusculas sin tildes | 9 | 7 |
+| 2 | Plantas repetidas en el catalogo | Dejar una sola | 3 | 0 |
+| 3 | Fecha de entrada en operacion como texto | Convertir a fecha | 2,520 | 0 |
+| 4 | Plantas que generan pero no estan en el catalogo | Agregarlas con tipo DESCONOCIDO | 10 | 0 |

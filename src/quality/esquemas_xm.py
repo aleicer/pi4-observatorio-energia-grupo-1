@@ -50,7 +50,8 @@ ESQUEMA_XM_CONTRATOS = pa.DataFrameSchema(
         "fecha": Column(pa.Date, unique=True),
         "precio_contrato_cop_kwh": Column(
             float,
-            Check.in_range(0, 2000, include_min=False),
+            # EA3: minimo 50 COP/kWh (en 2026 XM reporto dias de 0,045)
+            Check.in_range(50, 2000),
         ),
     },
     strict=True,

@@ -1,0 +1,6 @@
+# Librerias del dashboard (las instala Streamlit Community Cloud al publicarlo).
+# Son menos que las del pipeline: el dashboard solo lee los Parquet de la capa oro.
+streamlit>=1.50
+pandas>=2.2
+pyarrow>=17.0
+plotly>=5.24
