@@ -1,0 +1,106 @@
+# Documentacion y pruebas de los modelos del dashboard (EA3).
+# Son tablas resumidas que se construyen con los hechos y las dimensiones de marts/:
+# el dashboard las lee ya listas, sin hacer uniones pesadas.
+version: 2
+
+models:
+  - name: mart_hidroclima_mensual
+    description: "Grano: un mes (2015-01 a 2026-09). Embalses, aportes, precio de bolsa y de contratos (XM), ONI y fase ENSO (NOAA), lluvia (IDEAM y NASA POWER) y radiación de La Guajira (NASA POWER). Preguntas 1, 2 y propia."
+    columns:
+      - name: periodo
+        description: "Mes en formato AAAA-MM."
+        data_tests: [unique, not_null]
+      - name: fecha_id
+        description: "Primer día del mes (AAAAMM01), para unir con dim_fecha."
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_fecha')
+                field: fecha_id
+      - name: fase_enso
+        description: "El Niño, La Niña, Neutral o Sin dato (NOAA)."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['El Niño', 'La Niña', 'Neutral', 'Sin dato']
+      - name: volumen_util_pct
+        description: "Volumen útil promedio de los embalses en el mes (%)."
+      - name: volumen_util_min_pct
+        description: "El día con menos agua en los embalses en el mes (%)."
+      - name: aportes_gwh
+        description: "Aportes hídricos del mes (GWh)."
+      - name: precio_bolsa_cop_kwh
+        description: "Precio de bolsa del mes, ponderado por la demanda de cada hora (COP/kWh)."
+      - name: precio_bolsa_max_cop_kwh
+        description: "La hora más cara del mes (COP/kWh)."
+      - name: demanda_gwh
+        description: "Demanda de energía del país en el mes (GWh)."
+      - name: precio_contrato_cop_kwh
+        description: "Precio promedio de los contratos en el mes (COP/kWh)."
+      - name: lluvia_ideam_mm_dia
+        description: "Lluvia promedio de un día en las estaciones del IDEAM en Antioquia (mm). Solo 2025-2026."
+      - name: lluvia_nasa_mm_dia
+        description: "Lluvia promedio de un día en los 3 puntos de Antioquia de NASA POWER (mm). 2024-2026."
+      - name: radiacion_guajira_kwh_m2
+        description: "Radiación solar promedio de un día en La Guajira (kWh/m²), NASA POWER. 2024-2026."
+
+  - name: mart_generacion_tipo_diaria
+    description: "Grano: una fecha y un tipo de planta. Generación del país por tipo (XM), 2024-2026. Pregunta 3 y propia."
+    columns:
+      - name: fecha_id
+        data_tests: [not_null]
+      - name: tipo
+        description: "Tipo de planta, de dim_recurso."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['HIDRAULICA', 'TERMICA', 'SOLAR', 'EOLICA', 'COGENERADOR', 'DESCONOCIDO']
+      - name: es_temporada_seca
+        description: "Verdadero en diciembre a marzo y en julio-agosto."
+      - name: generacion_gwh
+        description: "Energía generada en el día por ese tipo de planta (GWh)."
+        data_tests: [not_null]
+
+  - name: mart_mercado_horario
+    description: "Grano: una fecha y una hora (2015-2026). Precio de bolsa y demanda con el calendario y la franja horaria ya unidos. Pregunta 4."
+    columns:
+      - name: fecha_id
+        data_tests: [not_null]
+      - name: hora
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+      - name: franja
+        description: "Pico (17 a 21 h), Valle (0 a 5 h) o Media."
+      - name: demanda_mwh
+        description: "Demanda de energía del país en esa hora (MWh)."
+
+  - name: mart_ventas_costo_mensual
+    description: "Grano: un mes, un municipio, un segmento y un tipo de compra. Ventas de EnerAndes con el costo de comprarlas por contrato y en bolsa. Pregunta 5. Supuesto: EnerAndes compra al precio promedio del mercado."
+    columns:
+      - name: municipio
+        data_tests: [not_null]
+      - name: segmento
+        data_tests: [not_null]
+      - name: tipo_compra
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Contrato', 'Bolsa']
+      - name: precio_bolsa_cop_kwh
+        description: "Precio de bolsa del mes (COP/kWh)."
+        data_tests: [not_null]
+      - name: precio_contrato_cop_kwh
+        description: "Precio promedio de contratos del mes (COP/kWh)."
+        data_tests: [not_null]
+      - name: costo_compra_cop
+        description: "Lo que costó comprar la energía según su tipo de compra (COP)."
+      - name: costo_si_bolsa_cop
+        description: "Lo que habría costado comprar toda esa energía en bolsa (COP)."
+      - name: costo_si_contrato_cop
+        description: "Lo que habría costado comprar toda esa energía por contrato (COP)."
