@@ -29,6 +29,12 @@ TABLAS_ORO = [
     "fact_hidrologia_diaria",
     "fact_clima_diario",
     "fact_clima_satelital",
+    "fact_precio_contrato_diario",
+    # Tablas resumidas para el dashboard
+    "mart_hidroclima_mensual",
+    "mart_generacion_tipo_diaria",
+    "mart_mercado_horario",
+    "mart_ventas_costo_mensual",
 ]
 
 CARPETA_ORO = config.RAIZ / "data" / "gold"
