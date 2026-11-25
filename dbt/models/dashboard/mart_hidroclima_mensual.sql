@@ -83,7 +83,12 @@ select
     k.precio_bolsa_cop_kwh,
     k.precio_bolsa_max_cop_kwh,
     k.demanda_gwh,
-    c.precio_contrato_cop_kwh,
+    -- Si un mes no tiene precio de contratos valido (abril a junio de 2026, ver el reporte de
+    -- calidad), se usa el del ultimo mes con dato: los contratos cambian despacio.
+    coalesce(c.precio_contrato_cop_kwh,
+             last_value(c.precio_contrato_cop_kwh ignore nulls) over (order by m.periodo))
+                                    as precio_contrato_cop_kwh,
+    c.precio_contrato_cop_kwh is null as precio_contrato_estimado,
     i.lluvia_ideam_mm_dia,
     s.lluvia_nasa_mm_dia,
     s.radiacion_guajira_kwh_m2

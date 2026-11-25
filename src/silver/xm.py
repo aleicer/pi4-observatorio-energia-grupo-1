@@ -31,6 +31,11 @@ from src.silver.comun import LINAJE, Medidor, guardar_plata
 from src.silver.enerandes import sin_tildes
 from src.utils import log
 
+# Precio de contratos mas bajo que se acepta (COP/kWh). Desde 2015 nunca ha bajado de
+# 130; entre abril y junio de 2026 XM reporto valores de 0,045 que no son un precio real
+# (parecen otra unidad). Se encontro al revisar el dashboard con los datos reales (EA3).
+PRECIO_CONTRATO_MINIMO = 50
+
 
 # ------------------------------------------------------------
 # LECTURA DE DATOS BRONCE
@@ -398,6 +403,19 @@ def limpiar_contratos(contratos: pd.DataFrame):
         "Fecha invalida o precio fuera del rango permitido",
         "Pasar a cuarentena",
         int(malas.sum()),
+        0,
+    )
+
+    # Regla de calidad (EA3): un precio positivo pero imposiblemente bajo tampoco es valido
+    muy_bajos = df["precio_contrato_cop_kwh"] < PRECIO_CONTRATO_MINIMO
+    cuarentena = pd.concat([cuarentena, df[muy_bajos].assign(
+        motivo_cuarentena=f"Precio de contratos menor a {PRECIO_CONTRATO_MINIMO} COP/kWh (no es un precio real)")])
+    df = df[~muy_bajos].copy()
+
+    m.medir(
+        f"Precio de contratos menor a {PRECIO_CONTRATO_MINIMO} COP/kWh",
+        "Pasar a cuarentena (el mes usa el precio del ultimo mes con dato)",
+        int(muy_bajos.sum()),
         0,
     )
 

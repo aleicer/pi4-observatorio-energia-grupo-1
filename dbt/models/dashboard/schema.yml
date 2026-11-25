@@ -38,7 +38,10 @@ models:
       - name: demanda_gwh
         description: "Demanda de energía del país en el mes (GWh)."
       - name: precio_contrato_cop_kwh
-        description: "Precio promedio de los contratos en el mes (COP/kWh)."
+        description: "Precio promedio de los contratos en el mes (COP/kWh). Si el mes no tiene un precio válido, se usa el del último mes con dato."
+        data_tests: [not_null]
+      - name: precio_contrato_estimado
+        description: "Verdadero si el mes no tuvo precio de contratos válido y se tomó el del último mes con dato (abril a junio de 2026)."
       - name: lluvia_ideam_mm_dia
         description: "Lluvia promedio de un día en las estaciones del IDEAM en Antioquia (mm). Solo 2025-2026."
       - name: lluvia_nasa_mm_dia
