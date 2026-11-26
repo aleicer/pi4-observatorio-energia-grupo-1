@@ -21,3 +21,4 @@ bash.*
 dbt/target/
 dbt/logs/
 dbt/.user.yml
+Claude outputs
