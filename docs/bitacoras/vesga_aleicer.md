@@ -55,3 +55,30 @@ _Alrededor de 6 horas para el desarrollo_
 ### Horas dedicadas
 
 _Alrededor de 4 horas_
+
+## Semanas 5 a 7 – EA3 (9 al 29 de noviembre de 2026)
+
+- **Rol:** BI Analyst / Storyteller y Data Quality Analyst (antes: Data Engineer y Analytics Engineer)
+
+### ¿Qué hice?
+
+- **Roles y preguntas:** actualicé la tabla de integrantes con los roles de las semanas 1 a 4 y 5 a 7, y escribí las 6 preguntas de negocio con la tabla de oro que responde cada una. → [PR #23](https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/23)
+- **Dashboard en Streamlit:** `dashboard/app.py` con 4 indicadores, una pestaña por pregunta y filtros por meses, fase ENSO, municipio, segmento y tipo de compra; los cálculos van aparte en `dashboard/kpis.py` con 6 pruebas en `tests/test_kpis.py` (rezago del ONI, hora pico, costos, exposición a bolsa, episodios de El Niño y participación). Lo publiqué en Streamlit Community Cloud. → [PR #28](https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/28)
+- **Calidad (hallazgo con los datos reales):** al revisar el dashboard vi que XM reportó el precio de contratos en 0,045 COP/kWh durante 90 días de 2026. Agregué la regla del mínimo de 50 COP/kWh en plata, el rango en pandera, 2 pruebas en `tests/test_calidad_contratos.py` y que los meses sin precio válido usen el del último mes con dato. → [PR #28](https://github.com/aleicer/pi4-observatorio-energia-grupo-1/pull/28)
+- **Informe y README:** `docs/informe_final.pdf` (8 páginas, para la gerencia: contexto, arquitectura, calidad, un hallazgo por pregunta, 6 recomendaciones y limitaciones) y el README completo con la plantilla del Anexo A.
+- Revisé y aprobé los PRs de Jaider y Guillermo, y creé la tag `final`.
+
+### ¿Qué aprendí?
+
+- Que un dashboard también es una herramienta de calidad: el precio de contratos de 0,045 pasaba todas las reglas, pero se veía raro en la gráfica. Una regla de "mayor que 0" no basta; hay que pensar qué valores son posibles.
+- Que separar los cálculos (`kpis.py`) del dibujo (`app.py`) permite probar los KPIs con pytest y datos de ejemplo, sin abrir Streamlit.
+- Que contar una historia con datos es elegir: de cada pregunta, el número que le sirve a la gerencia para decidir (por ejemplo, el ahorro de $64.700 millones de bajar la bolsa al 5 % en El Niño).
+
+### Bloqueos y cómo los resolví
+
+- **Esperar las tablas de Guillermo:** el dashboard dependía de sus modelos de dbt. Lo construí y probé antes, y lo subí solo cuando su PR estuvo en `main`, para que el workflow no saliera en rojo.
+- **Datos para Streamlit Cloud:** `data/gold/` no se sube a GitHub. Lo resolví con `dashboard/actualizar_datos.py`, que copia las 4 tablas del dashboard (1,4 MB) a `dashboard/datos/`.
+
+### Horas dedicadas
+
+_Alrededor de 6 horas_
